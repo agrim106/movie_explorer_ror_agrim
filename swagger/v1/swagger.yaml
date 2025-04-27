@@ -1,63 +1,94 @@
+---
 openapi: 3.0.1
 info:
-  title: API V1
+  title: Movie Explorer API V1
   version: v1
 paths:
   "/api/v1/users":
     post:
-      summary: Create a new user
+      summary: User created
       tags:
       - Users
       parameters: []
       responses:
-        '201':
-          description: User created
         '422':
-          description: Invalid data
+          description: returns a 422 response
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                first_name:
-                  type: string
-                last_name:
-                  type: string
-                email:
-                  type: string
-                password:
-                  type: string
-                mobile_number:
-                  type: string
-              required:
-              - first_name
-              - email
-              - password
-              - mobile_number
+                user:
+                  type: object
+                  properties:
+                    first_name:
+                      type: string
+                    last_name:
+                      type: string
+                    email:
+                      type: string
+                      format: email
+                    password:
+                      type: string
+                    mobile_number:
+                      type: string
+                  required:
+                  - first_name
+                  - last_name
+                  - email
+                  - password
+                  - mobile_number
   "/api/v1/users/sign_in":
     post:
-      summary: Sign in a user
+      summary: Signed in
       tags:
       - Users
       parameters: []
       responses:
         '200':
-          description: Signed in
+          description: returns a 200 response
         '401':
-          description: Unauthorized
+          description: returns a 401 response
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                email:
-                  type: string
-                password:
-                  type: string
-              required:
-              - email
-              - password
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                    password:
+                      type: string
+                  required:
+                  - email
+                  - password
 servers:
 - url: http://localhost:3000
+  description: Local server
+components:
+  schemas:
+    user:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        mobile_number:
+          type: string
+      required:
+      - first_name
+      - last_name
+      - email
+      - password
+      - mobile_number

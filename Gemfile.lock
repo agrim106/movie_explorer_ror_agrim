@@ -114,6 +114,10 @@ GEM
     connection_pool (2.5.2)
     crass (1.0.6)
     csv (3.3.4)
+    database_cleaner-active_record (2.2.0)
+      activerecord (>= 5.a)
+      database_cleaner-core (~> 2.0.0)
+    database_cleaner-core (2.0.1)
     date (3.4.1)
     debug (1.10.0)
       irb (~> 1.10)
@@ -132,6 +136,13 @@ GEM
     drb (2.2.1)
     error_highlight (0.7.0)
     erubi (1.13.1)
+    factory_bot (6.5.1)
+      activesupport (>= 6.1.0)
+    factory_bot_rails (6.4.4)
+      factory_bot (~> 6.5)
+      railties (>= 5.0.0)
+    faker (3.5.1)
+      i18n (>= 1.8.11, < 2)
     faraday (2.13.1)
       faraday-net_http (>= 2.0, < 3.5)
       json
@@ -141,6 +152,8 @@ GEM
     fcm (2.0.1)
       faraday (>= 1.0.0, < 3.0)
       googleauth (~> 1)
+    ffi (1.17.2-x64-mingw-ucrt)
+    ffi (1.17.2-x86_64-linux-gnu)
     formtastic (5.0.0)
       actionpack (>= 6.0.0)
     formtastic_i18n (0.7.0)
@@ -335,6 +348,14 @@ GEM
       railties (>= 5.2, < 8.1)
     ruby2_keywords (0.0.5)
     rubyzip (2.4.1)
+    sassc (2.4.0)
+      ffi (~> 1.9)
+    sassc-rails (2.1.2)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     securerandom (0.4.1)
     selenium-webdriver (4.31.0)
       base64 (~> 0.2)
@@ -360,6 +381,7 @@ GEM
     stringio (3.1.7)
     stripe (15.0.0)
     thor (1.3.2)
+    tilt (2.6.0)
     timeout (0.4.3)
     turbo-rails (2.0.13)
       actionpack (>= 7.1.0)
@@ -395,10 +417,13 @@ DEPENDENCIES
   bcrypt (~> 3.1.7)
   bootsnap
   capybara
+  database_cleaner-active_record
   debug
   devise
   dotenv-rails
   error_highlight (>= 0.4.0)
+  factory_bot_rails
+  faker
   fcm
   importmap-rails
   jbuilder
@@ -412,6 +437,7 @@ DEPENDENCIES
   rswag-api
   rswag-specs
   rswag-ui
+  sassc-rails
   selenium-webdriver
   sprockets-rails
   stimulus-rails

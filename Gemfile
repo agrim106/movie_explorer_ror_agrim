@@ -81,3 +81,8 @@ gem 'rswag-specs'
 gem 'rspec-rails'
 gem 'rack-cors'
 gem 'dotenv-rails', groups: [:development, :test]
+gem 'factory_bot_rails'
+gem 'faker'
+gem 'database_cleaner-active_record'
+gem 'activeadmin'
+gem 'sassc-rails'
