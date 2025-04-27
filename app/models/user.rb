@@ -28,4 +28,7 @@ class User < ApplicationRecord
   def password_reset_expired?
     reset_password_sent_at < 2.hours.ago
   end
+  def self.ransackable_attributes(auth_object = nil)
+    ["created_at", "email", "first_name", "id", "last_name", "mobile_number", "role", "updated_at"]
+  end
 end
