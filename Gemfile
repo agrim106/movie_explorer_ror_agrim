@@ -68,11 +68,13 @@ group :test do
   gem "selenium-webdriver"
 end
 gem 'devise'
-gem 'jwt'
+
+gem 'jwt', '~> 2.7'      # For JWT generation
 gem 'activeadmin'
 gem 'activestorage'
 gem 'stripe' # ya 'razorpay'
 gem 'fcm'
+gem "rswag"
 gem 'rswag-api'
 gem 'rswag-ui'
 gem 'rswag-specs'

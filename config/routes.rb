@@ -1,10 +1,22 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # Mount RSwag UI at /api-docs (for UI interface)
+  mount Rswag::Ui::Engine => '/api-docs'
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
+  # Mount RSwag API at a simpler path (for API definition)
+  mount Rswag::Api::Engine => '/api-docs'
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Existing routes
+  namespace :api do
+    namespace :v1 do
+      post '/users/password', to: 'users#create_password_reset'
+      put '/users/password', to: 'users#update_password'
+      post '/users/sign_in', to: 'users#sign_in'
+      resources :users, only: [:create] do
+        collection do
+          get 'me', action: :show
+          put 'me', action: :update
+        end
+      end
+    end
+  end
 end

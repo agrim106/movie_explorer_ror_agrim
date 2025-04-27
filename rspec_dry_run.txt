@@ -1,0 +1,7 @@
+.......................
+
+1 deprecation warning total
+
+Finished in 0.00195 seconds (files took 4.91 seconds to load)
+23 examples, 0 failures
+
