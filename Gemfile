@@ -78,12 +78,23 @@ gem "rswag"
 gem 'rswag-api'
 gem 'rswag-ui'
 gem 'rswag-specs'
-gem 'rspec-rails'
+
 gem 'rack-cors'
 gem 'dotenv-rails', groups: [:development, :test]
-gem 'factory_bot_rails'
+
 gem 'faker'
 gem 'database_cleaner-active_record'
 gem 'activeadmin'
 gem 'sassc-rails'
 gem 'highcharts-rails'
+group :development, :test do
+  gem 'rspec-rails'
+end
+
+group :test do
+  gem 'factory_bot_rails'
+  gem 'shoulda-matchers'
+end
+gem 'cloudinary'
+gem 'activestorage-validator' # Optional, for validation on uploads
+gem 'kaminari' # Pagination

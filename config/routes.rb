@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  devise_for :users
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   # Mount RSwag UI at /api-docs (for UI interface)
@@ -19,6 +20,8 @@ Rails.application.routes.draw do
           put 'me', action: :update
         end
       end
+      # Add routes for MoviesController
+      resources :movies, only: [:index, :show, :create, :update, :destroy]
     end
   end
 end

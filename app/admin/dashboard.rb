@@ -15,6 +15,18 @@ ActiveAdmin.register_page "Dashboard" do
       end
 
       column do
+        panel "Movie Statistics" do
+          ul do
+            li "Total Movies: #{Movie.count}"
+            li "Premium Movies: #{Movie.where(premium: true).count}"
+            li "Average Rating: #{Movie.average(:rating).to_f.round(2) || 0.0}"
+          end
+        end
+      end
+    end
+
+    columns do
+      column do
         panel "Users by Role" do
           # Pie chart data
           roles = User.group(:role).count
