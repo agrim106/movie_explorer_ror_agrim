@@ -34,15 +34,12 @@ local:
 #   mirrors: [ amazon, google, microsoft ]
 cloudinary:
   service: Cloudinary
-
-test:
-  service: Disk
-  root: <%= Rails.root.join("tmp/storage") %>
-
+  api_key: <%= ENV['CLOUDINARY_API_KEY'] %>
+  api_secret: <%= ENV['CLOUDINARY_API_SECRET'] %>
+  cloud_name: <%= ENV['CLOUDINARY_CLOUD_NAME'] %>
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# Use :cloudinary in production
-production:
-  service: Cloudinary
+# Default service ko Cloudinary pe set karo
+default: cloudinary

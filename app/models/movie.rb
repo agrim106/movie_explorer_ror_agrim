@@ -3,11 +3,11 @@ class Movie < ApplicationRecord
   has_many :reviews, dependent: :destroy
   has_many :orders, dependent: :destroy
 
-  # Attachments for Active Storage
+  # Attachments for Active Storage (Cloudinary)
   has_one_attached :poster
   has_one_attached :banner
 
-  # Basic validations
+  # Validations
   validates :title, presence: true
   validates :genre, presence: true, inclusion: { in: %w[action horror comedy romance] }
   validates :release_year, presence: true, numericality: { only_integer: true }, inclusion: { in: 1900..Time.current.year }
@@ -19,13 +19,13 @@ class Movie < ApplicationRecord
   validates :premium, inclusion: { in: [true, false] }
 
   # Custom validation for attachments
-  validate :poster_attached
-  validate :banner_attached
+  validates :poster, attached: true, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }
+  validates :banner, attached: true, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }
 
-  # Custom validation for release_year (no future dates)
+  # Custom validation for release_year
   validate :release_year_cannot_be_future
 
-  # Scope for premium movies
+  # Scope
   scope :premium_movies, -> { where(premium: true) }
 
   # Ransack configuration
@@ -44,14 +44,13 @@ class Movie < ApplicationRecord
   end
 
   def poster_url
-    poster.attached? ? Rails.application.routes.url_helpers.rails_blob_path(poster, only_path: true) : nil
+    poster.attached? ? poster.url : nil
   end
 
   def banner_url
-    banner.attached? ? Rails.application.routes.url_helpers.rails_blob_path(banner, only_path: true) : nil
+    banner.attached? ? banner.url : nil
   end
 
-  # Class method to create a movie with file uploads
   def self.create_movie(params)
     movie = Movie.new(params.except(:poster, :banner))
     movie.poster.attach(params[:poster]) if params[:poster].present?
@@ -64,7 +63,6 @@ class Movie < ApplicationRecord
     end
   end
 
-  # Instance method to update a movie with file uploads
   def update_movie(params)
     self.attributes = params.except(:poster, :banner)
     self.poster.attach(params[:poster]) if params[:poster].present?
@@ -78,18 +76,6 @@ class Movie < ApplicationRecord
   end
 
   private
-
-  def poster_attached
-    unless poster.attached?
-      errors.add(:poster, "must be attached")
-    end
-  end
-
-  def banner_attached
-    unless banner.attached?
-      errors.add(:banner, "must be attached")
-    end
-  end
 
   def release_year_cannot_be_future
     if release_year.present? && release_year > Time.current.year

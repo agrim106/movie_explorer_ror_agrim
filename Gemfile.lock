@@ -50,6 +50,15 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
+    active_storage_base64 (3.0.0)
+      activestorage (> 7.0)
+      activesupport (> 7.0)
+    active_storage_validations (1.4.0)
+      activejob (>= 6.1.4)
+      activemodel (>= 6.1.4)
+      activestorage (>= 6.1.4)
+      activesupport (>= 6.1.4)
+      marcel (>= 1.0.3)
     activeadmin (3.3.0)
       arbre (~> 1.2, >= 1.2.1)
       csv
@@ -429,6 +438,8 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  active_storage_base64
+  active_storage_validations (~> 1.0)
   activeadmin
   activestorage
   activestorage-validator

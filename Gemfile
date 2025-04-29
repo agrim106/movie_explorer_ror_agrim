@@ -95,6 +95,12 @@ group :test do
   gem 'factory_bot_rails'
   gem 'shoulda-matchers'
 end
-gem 'cloudinary'
+
 gem 'activestorage-validator' # Optional, for validation on uploads
 gem 'kaminari' # Pagination
+gem 'cloudinary'
+gem 'active_storage_validations', '~> 1.0'
+
+# Ensure activeadmin aur active_storage bhi hain
+gem 'activeadmin'
+gem 'active_storage_base64'
