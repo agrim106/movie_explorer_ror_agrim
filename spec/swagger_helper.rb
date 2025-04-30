@@ -30,8 +30,20 @@ RSpec.configure do |config|
             },
             required: %w[first_name last_name email password mobile_number]
           }
+        },
+        securitySchemes: { # Added securitySchemes for Bearer token
+          Bearer: {
+            type: :http,
+            scheme: :bearer,
+            bearerFormat: :JWT
+          }
         }
-      }
+      },
+      security: [ # Added global security to enforce Bearer token
+        {
+          Bearer: []
+        }
+      ]
     }
   }
 
