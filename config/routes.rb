@@ -14,14 +14,14 @@ Rails.application.routes.draw do
       post '/users/password', to: 'users#create_password_reset'
       put '/users/password', to: 'users#update_password'
       post '/users/sign_in', to: 'users#sign_in'
-      resources :users, only: [:create] do
+      resources :users, only: [:index, :show, :create, :update, :destroy] do
         collection do
           get 'me', action: :show
           put 'me', action: :update
         end
       end
       # Routes for MoviesController
-      get 'movies/:genre', to: 'movies#index_by_genre' # Moved above resources :movies
+      get 'movies/:genre', to: 'movies#index_by_genre'
       resources :movies, only: [:index, :show, :create, :update, :destroy]
     end
   end

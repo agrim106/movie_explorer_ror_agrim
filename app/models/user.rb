@@ -35,4 +35,17 @@ class User < ApplicationRecord
   def self.ransackable_attributes(auth_object = nil)
     ["created_at", "email", "first_name", "id", "last_name", "mobile_number", "role", "updated_at"]
   end
+
+  # Helper methods for role checks
+  def admin?
+    role == "admin"
+  end
+
+  def supervisor?
+    role == "supervisor"
+  end
+
+  def common_user?
+    role == "user"
+  end
 end

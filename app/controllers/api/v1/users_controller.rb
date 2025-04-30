@@ -1,11 +1,20 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      before_action :authenticate_user, only: [:show, :update]
-      before_action :require_supervisor, only: []
+      skip_before_action :authenticate_user!, only: [:create, :sign_in, :create_password_reset, :update_password] # Skip authentication for public actions
+      before_action :authenticate_user, only: [:index, :show, :update, :destroy]
+      before_action :set_user, only: [:show, :update, :destroy]
+      before_action :authorize_admin, only: [:index, :destroy]
+      before_action :authorize_self_or_admin, only: [:show, :update]
+
+      def index
+        users = User.all
+        render json: users.as_json(only: [:id, :email, :first_name, :last_name, :mobile_number, :role])
+      end
 
       def create
         user = User.new(user_params)
+        user.role ||= 'user' # Default role to common user
         if user.save
           token = user.generate_jwt
           render json: { token: token, user: { email: user.email, first_name: user.first_name, role: user.role } }, status: :created
@@ -33,15 +42,20 @@ module Api
       end
 
       def show
-        render json: { user: { email: current_user.email, first_name: current_user.first_name, last_name: current_user.last_name, mobile_number: current_user.mobile_number, role: current_user.role } }
+        render json: { user: { id: @user.id, email: @user.email, first_name: @user.first_name, last_name: @user.last_name, mobile_number: @user.mobile_number, role: @user.role } }
       end
 
       def update
-        if current_user.update(user_params)
-          render json: { user: { email: current_user.email, first_name: current_user.first_name, last_name: current_user.last_name, mobile_number: current_user.mobile_number, role: current_user.role } }
+        if @user.update(user_params)
+          render json: { user: { id: @user.id, email: @user.email, first_name: @user.first_name, last_name: @user.last_name, mobile_number: @user.mobile_number, role: @user.role } }
         else
-          render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
         end
+      end
+
+      def destroy
+        @user.destroy
+        head :no_content
       end
 
       def create_password_reset
@@ -71,6 +85,13 @@ module Api
       end
 
       private
+
+      def set_user
+        @user = User.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "User not found" }, status: :not_found
+      end
+
       def user_params
         params.require(:user).permit(:first_name, :last_name, :email, :password, :mobile_number, :role)
       end
@@ -89,9 +110,15 @@ module Api
         @current_user
       end
 
-      def require_supervisor
-        unless current_user.supervisor?
-          render json: { error: 'Forbidden: Supervisor access required' }, status: :forbidden
+      def authorize_admin
+        unless current_user.admin?
+          render json: { error: 'Forbidden: Admin access required' }, status: :forbidden
+        end
+      end
+
+      def authorize_self_or_admin
+        unless current_user.id == @user.id || current_user.admin?
+          render json: { error: 'Forbidden: You can only access or modify your own account, or need admin privileges' }, status: :forbidden
         end
       end
     end
