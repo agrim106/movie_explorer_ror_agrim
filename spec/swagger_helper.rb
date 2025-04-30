@@ -15,7 +15,9 @@ RSpec.configure do |config|
         {
           url: 'http://localhost:3000',
           description: 'Local server'
-        }
+        },
+        { url: 'https://movie-explorer-ror-agrim.onrender.com', description: 'Production server' }
+
       ],
       components: {
         schemas: {
