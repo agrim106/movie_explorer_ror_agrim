@@ -15,7 +15,15 @@ module Api
       end
 
       def sign_in
-        user = User.authenticate(params[:email], params[:password])
+        email = params.dig(:user, :email)
+        password = params.dig(:user, :password)
+
+        if email.blank? || password.blank?
+          render json: { error: 'Email and password are required' }, status: :bad_request
+          return
+        end
+
+        user = User.authenticate(email, password)
         if user
           token = user.generate_jwt
           render json: { token: token, user: { email: user.email, first_name: user.first_name, role: user.role } }, status: :ok

@@ -16,8 +16,9 @@ class User < ApplicationRecord
   end
 
   def self.authenticate(email, password)
-    user = find_by(email: email.downcase)
-    user&.valid_password?(password) # Devise method
+    return nil if email.blank? || password.blank?
+    user = find_by(email: email.downcase.strip)
+    user if user&.valid_password?(password) # Devise method
   end
 
   def generate_password_reset_token

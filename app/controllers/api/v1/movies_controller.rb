@@ -15,6 +15,23 @@ module Api
         }
       end
 
+      def index_by_genre
+        genre = params[:genre].downcase
+        unless Movie::VALID_GENRES.include?(genre)
+          render json: { error: "Invalid genre. Allowed genres are: #{Movie::VALID_GENRES.join(', ')}" }, status: :bad_request
+          return
+        end
+
+        movies = Movie.where(genre: genre).order(created_at: :desc)
+        paginated_movies = movies.page(params[:page]).per(10)
+
+        render json: {
+          movies: paginated_movies.as_json(only: [:id, :title, :genre, :release_year, :rating, :premium], methods: [:poster_url, :banner_url]),
+          total_pages: paginated_movies.total_pages,
+          current_page: paginated_movies.current_page
+        }
+      end
+
       def show
         render json: @movie.as_json(
           only: [:id, :title, :genre, :release_year, :rating, :director, :duration, :description, :premium],

@@ -1,4 +1,6 @@
 class Movie < ApplicationRecord
+  VALID_GENRES = %w[action horror comedy romance sci-fi].freeze
+
   # Associations
   has_many :reviews, dependent: :destroy
   has_many :orders, dependent: :destroy
@@ -9,7 +11,7 @@ class Movie < ApplicationRecord
 
   # Validations
   validates :title, presence: true
-  validates :genre, presence: true, inclusion: { in: %w[action horror comedy romance] }
+  validates :genre, presence: true, inclusion: { in: VALID_GENRES }
   validates :release_year, presence: true, numericality: { only_integer: true }, inclusion: { in: 1900..Time.current.year }
   validates :rating, presence: true, numericality: { greater_than_or_equal_to: 0.0, less_than_or_equal_to: 10.0 }
   validates :director, presence: true
@@ -82,6 +84,7 @@ class Movie < ApplicationRecord
       errors.add(:release_year, "cannot be in the future")
     end
   end
+
   def self.ransackable_associations(auth_object = nil)
     ["banner_attachment", "banner_blob", "orders", "poster_attachment", "poster_blob", "reviews"]
   end

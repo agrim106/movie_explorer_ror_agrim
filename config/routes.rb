@@ -20,7 +20,8 @@ Rails.application.routes.draw do
           put 'me', action: :update
         end
       end
-      # Add routes for MoviesController
+      # Routes for MoviesController
+      get 'movies/:genre', to: 'movies#index_by_genre' # Moved above resources :movies
       resources :movies, only: [:index, :show, :create, :update, :destroy]
     end
   end
