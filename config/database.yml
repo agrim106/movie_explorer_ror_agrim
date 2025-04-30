@@ -16,5 +16,6 @@ test:
 
 production:
   <<: *default
-  database: <%= ENV['DB_NAME_PRODUCTION'] %>
+  # database: <%= ENV['DB_NAME_PRODUCTION'] %>
   url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
