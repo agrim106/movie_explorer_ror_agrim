@@ -37,3 +37,4 @@ RSpec.configure do |config|
 
   config.openapi_format = :yaml
 end
+ 
