@@ -10,6 +10,9 @@ class User < ApplicationRecord
   validates :mobile_number, presence: true, uniqueness: true, length: { is: 10 }
   before_save { self.email = email.downcase }
 
+  has_one :subscription, dependent: :destroy
+  after_create :create_default_subscription
+
   def generate_jwt
     payload = { user_id: id, role: role, exp: 24.hours.from_now.to_i }
     JWT.encode(payload, ENV['JWT_SECRET'], 'HS256')
@@ -47,5 +50,23 @@ class User < ApplicationRecord
 
   def common_user?
     role == "user"
+  end
+
+  def premium?
+    subscription&.premium? && subscription.active? && (subscription.end_date.nil? || subscription.end_date > Time.current)
+  end
+
+  def can_access_premium_movies?
+    admin? || premium?
+  end
+
+  private
+
+  def create_default_subscription
+    Subscription.create(user: self, start_date: Time.current, end_date: nil) unless subscription
+  end
+
+  def role_cannot_be_changed
+    errors.add(:role, "cannot be changed directly") if role_changed? && !admin? # Only admin can change roles via update_role
   end
 end

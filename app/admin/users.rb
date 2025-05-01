@@ -25,7 +25,7 @@ ActiveAdmin.register User do
       f.input :email
       f.input :password
       f.input :mobile_number
-      f.input :role, as: :select, collection: User.roles.keys
+      f.input :role, as: :select, collection: User.roles.keys - ['admin'] # Exclude 'admin' from dropdown
     end
     f.actions
   end

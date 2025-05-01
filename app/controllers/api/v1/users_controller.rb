@@ -1,10 +1,10 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      skip_before_action :authenticate_user!, only: [:create, :sign_in, :create_password_reset, :update_password] # Skip authentication for public actions
-      before_action :authenticate_user, only: [:index, :show, :update, :destroy]
-      before_action :set_user, only: [:show, :update, :destroy]
-      before_action :authorize_admin, only: [:index, :destroy]
+      skip_before_action :authenticate_user!, only: [:create, :sign_in, :create_password_reset, :update_password]
+      before_action :authenticate_user, only: [:index, :show, :update, :destroy, :update_role]
+      before_action :set_user, only: [:show, :update, :destroy, :update_role]
+      before_action :authorize_admin, only: [:index, :destroy, :update_role]
       before_action :authorize_self_or_admin, only: [:show, :update]
 
       def index
@@ -13,8 +13,8 @@ module Api
       end
 
       def create
-        user = User.new(user_params)
-        user.role ||= 'user' # Default role to common user
+        user = User.new(user_params.except(:role))
+        user.role = 'user' # Force role to 'user'
         if user.save
           token = user.generate_jwt
           render json: { token: token, user: { email: user.email, first_name: user.first_name, role: user.role } }, status: :created
@@ -46,7 +46,7 @@ module Api
       end
 
       def update
-        if @user.update(user_params)
+        if @user.update(user_params.except(:role)) # Remove role from params
           render json: { user: { id: @user.id, email: @user.email, first_name: @user.first_name, last_name: @user.last_name, mobile_number: @user.mobile_number, role: @user.role } }
         else
           render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
@@ -56,6 +56,14 @@ module Api
       def destroy
         @user.destroy
         head :no_content
+      end
+
+      def update_role
+        if @user.update(role: params[:role])
+          render json: { user: { id: @user.id, role: @user.role } }, status: :ok
+        else
+          render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
+        end
       end
 
       def create_password_reset

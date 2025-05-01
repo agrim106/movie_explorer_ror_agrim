@@ -46,8 +46,7 @@ RSpec.describe 'Users API', type: :request do
               last_name: { type: :string },
               email: { type: :string },
               password: { type: :string },
-              mobile_number: { type: :string },
-              role: { type: :string, enum: ['user', 'supervisor', 'admin'] }
+              mobile_number: { type: :string }
             },
             required: ['first_name', 'last_name', 'email', 'password', 'mobile_number']
           }
@@ -176,8 +175,7 @@ RSpec.describe 'Users API', type: :request do
               last_name: { type: :string },
               email: { type: :string },
               password: { type: :string },
-              mobile_number: { type: :string },
-              role: { type: :string, enum: ['user', 'supervisor', 'admin'] }
+              mobile_number: { type: :string }
             }
           }
         }

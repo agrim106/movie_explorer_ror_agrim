@@ -1,59 +1,39 @@
 module Api
   module V1
     class MoviesController < ApplicationController
+      skip_before_action :authenticate_user!, only: [:index, :index_by_genre, :show] # Added to make public
       before_action :set_movie, only: [:show, :update, :destroy]
-      before_action :authorize_supervisor_or_admin, only: [:create, :update, :destroy]
+      before_action :authorize_admin, only: [:create, :update, :destroy]
 
       def index
-        movies = Movie.search_and_filter(params)
-        paginated_movies = movies.page(params[:page]).per(10)
-
-        render json: {
-          movies: paginated_movies.as_json(only: [:id, :title, :genre, :release_year, :rating, :premium], methods: [:poster_url, :banner_url]),
-          total_pages: paginated_movies.total_pages,
-          current_page: paginated_movies.current_page
-        }
+        movies = Movie.all
+        render json: movies_paginated(movies)
       end
 
       def index_by_genre
-        genre = params[:genre].downcase
-        unless Movie::VALID_GENRES.include?(genre)
-          render json: { error: "Invalid genre. Allowed genres are: #{Movie::VALID_GENRES.join(', ')}" }, status: :bad_request
-          return
-        end
-
-        movies = Movie.where(genre: genre).order(created_at: :desc)
-        paginated_movies = movies.page(params[:page]).per(10)
-
-        render json: {
-          movies: paginated_movies.as_json(only: [:id, :title, :genre, :release_year, :rating, :premium], methods: [:poster_url, :banner_url]),
-          total_pages: paginated_movies.total_pages,
-          current_page: paginated_movies.current_page
-        }
+        genre = params[:genre]
+        movies = Movie.where(genre: genre)
+        render json: movies_paginated(movies)
       end
 
       def show
-        render json: @movie.as_json(
-          only: [:id, :title, :genre, :release_year, :rating, :director, :duration, :description, :premium],
-          methods: [:poster_url, :banner_url]
-        )
+        render json: @movie
       end
 
       def create
-        result = Movie.create_movie(movie_params)
-        if result[:success]
-          render json: result[:movie].as_json(methods: [:poster_url, :banner_url]), status: :created
+        movie = Movie.new(movie_params)
+        if movie.save
+          render json: movie, status: :created
         else
-          render json: { error: result[:errors] }, status: :unprocessable_entity
+          render json: { errors: movie.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
       def update
-        result = @movie.update_movie(movie_params)
-        if result[:success]
-          render json: result[:movie].as_json(methods: [:poster_url, :banner_url])
+        if @movie.update(movie_params)
+          render json: @movie
         else
-          render json: { error: result[:errors] }, status: :unprocessable_entity
+          render json: { errors: @movie.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
@@ -71,16 +51,31 @@ module Api
       end
 
       def movie_params
-        if params[:movie].present?
-          params.require(:movie).permit(:title, :genre, :release_year, :rating, :director, :duration, :main_lead, :description, :premium, :poster, :banner)
-        else
-          params.permit(:title, :genre, :release_year, :rating, :director, :duration, :main_lead, :description, :premium, :poster, :banner)
+        params.require(:movie).permit(:title, :genre, :release_year, :rating, :director, :duration, :main_lead, :description, :premium, :poster, :banner)
+      end
+
+      def movies_paginated(movies)
+        paginated_movies = movies.page(params[:page]).per(10)
+        {
+          movies: paginated_movies.as_json,
+          total_pages: paginated_movies.total_pages,
+          current_page: paginated_movies.current_page
+        }
+      end
+
+      def authorize_admin
+        unless current_user&.admin?
+          render json: { error: 'Forbidden: Admin access required' }, status: :forbidden
         end
       end
 
-      def authorize_supervisor_or_admin
-        unless @current_user&.role&.in?(['supervisor', 'admin'])
-          render json: { error: 'Forbidden: You do not have permission to perform this action' }, status: :forbidden
+      def current_user
+        token = request.headers['Authorization']&.split(' ')&.last
+        begin
+          decoded = JWT.decode(token, ENV['JWT_SECRET'], true, { algorithm: 'HS256' }).first
+          User.find(decoded['user_id'])
+        rescue JWT::DecodeError, ActiveRecord::RecordNotFound
+          nil
         end
       end
     end

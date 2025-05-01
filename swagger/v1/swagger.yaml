@@ -34,12 +34,6 @@ paths:
                       type: string
                     mobile_number:
                       type: string
-                    role:
-                      type: string
-                      enum:
-                      - user
-                      - supervisor
-                      - admin
                   required:
                   - first_name
                   - last_name
@@ -427,12 +421,6 @@ paths:
                       type: string
                     mobile_number:
                       type: string
-                    role:
-                      type: string
-                      enum:
-                      - user
-                      - supervisor
-                      - admin
     delete:
       summary: Deletes a user
       tags:
