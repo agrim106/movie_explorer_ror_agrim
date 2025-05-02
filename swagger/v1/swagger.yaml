@@ -1,5 +1,4 @@
----
-openapi: 3.0.1
+openapi: 3.0.0
 info:
   title: Movie Explorer API V1
   version: v1
@@ -13,8 +12,21 @@ paths:
       responses:
         '422':
           description: invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
         '201':
           description: user created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
       requestBody:
         content:
           application/json:
@@ -46,6 +58,8 @@ paths:
                   - email
                   - password
                   - mobile_number
+              required:
+              - user
     get:
       summary: Retrieves users
       tags:
@@ -60,20 +74,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    email:
-                      type: string
-                    first_name:
-                      type: string
-                    last_name:
-                      type: string
-                    mobile_number:
-                      type: string
-                    role:
-                      type: string
+                  $ref: '#/components/schemas/user'
         '403':
           description: forbidden
           content:
@@ -92,8 +93,34 @@ paths:
       responses:
         '200':
           description: user signed in
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  first_name:
+                    type: string
+                  last_name:
+                    type: string
+                  mobile_number:
+                    type: string
+                  role:
+                    type: string
+                  token:
+                    type: string
         '401':
           description: unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
       requestBody:
         content:
           application/json:
@@ -110,6 +137,8 @@ paths:
                   required:
                   - email
                   - password
+              required:
+              - user
   "/api/v1/movies":
     get:
       summary: Retrieves movies
@@ -157,24 +186,7 @@ paths:
                   movies:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        title:
-                          type: string
-                        genre:
-                          type: string
-                        release_year:
-                          type: integer
-                        rating:
-                          type: number
-                        premium:
-                          type: boolean
-                        poster_url:
-                          type: string
-                        banner_url:
-                          type: string
+                      $ref: '#/components/schemas/Movie'
                   total_pages:
                     type: integer
                   current_page:
@@ -189,14 +201,92 @@ paths:
       responses:
         '201':
           description: movie created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Movie added successfully"
+                  movie:
+                    $ref: '#/components/schemas/Movie'
         '401':
           description: unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '422':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
       requestBody:
         content:
           multipart/form-data:
             schema:
-              type: string
-        required: true
+              type: object
+              properties:
+                movie[title]:
+                  type: string
+                  description: Title of the movie
+                movie[genre]:
+                  type: string
+                  description: Genre of the movie
+                movie[release_year]:
+                  type: integer
+                  description: Release year of the movie
+                movie[rating]:
+                  type: number
+                  format: float
+                  description: Rating of the movie (0 to 10)
+                movie[director]:
+                  type: string
+                  description: Director of the movie
+                movie[duration]:
+                  type: integer
+                  description: Duration of the movie in minutes
+                movie[description]:
+                  type: string
+                  description: Description of the movie (max 1000 characters)
+                movie[main_lead]:
+                  type: string
+                  description: Main lead actor/actress of the movie
+                movie[streaming_platform]:
+                  type: string
+                  description: Streaming platform (Amazon, Netflix, Hulu, Disney+, HBO)
+                  enum: ["Amazon", "Netflix", "Hulu", "Disney+", "HBO"]
+                movie[premium]:
+                  type: boolean
+                  description: Whether the movie is premium
+                movie[poster]:
+                  type: string
+                  format: binary
+                  description: Poster image file (JPEG or PNG)
+                movie[banner]:
+                  type: string
+                  format: binary
+                  description: Banner image file (JPEG or PNG)
+              required:
+              - movie[title]
+              - movie[genre]
+              - movie[release_year]
+              - movie[director]
+              - movie[duration]
+              - movie[description]
+              - movie[main_lead]
+              - movie[streaming_platform]
   "/api/v1/movies/{genre}":
     get:
       summary: Retrieves movies by genre
@@ -224,24 +314,7 @@ paths:
                   movies:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        title:
-                          type: string
-                        genre:
-                          type: string
-                        release_year:
-                          type: integer
-                        rating:
-                          type: number
-                        premium:
-                          type: boolean
-                        poster_url:
-                          type: string
-                        banner_url:
-                          type: string
+                      $ref: '#/components/schemas/Movie'
                   total_pages:
                     type: integer
                   current_page:
@@ -272,32 +345,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  title:
-                    type: string
-                  genre:
-                    type: string
-                  release_year:
-                    type: integer
-                  rating:
-                    type: number
-                  director:
-                    type: string
-                  duration:
-                    type: integer
-                  main_lead:
-                    type: string
-                  description:
-                    type: string
-                  premium:
-                    type: boolean
-                  poster_url:
-                    type: string
-                  banner_url:
-                    type: string
+                $ref: '#/components/schemas/Movie'
         '404':
           description: movie not found
           content:
@@ -322,13 +370,87 @@ paths:
       responses:
         '200':
           description: movie updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
         '401':
           description: unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+        '404':
+          description: movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Movie not found"
+        '422':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
       requestBody:
         content:
           multipart/form-data:
             schema:
-              type: string
+              type: object
+              properties:
+                movie[title]:
+                  type: string
+                  description: Title of the movie
+                movie[genre]:
+                  type: string
+                  description: Genre of the movie
+                movie[release_year]:
+                  type: integer
+                  description: Release year of the movie
+                movie[rating]:
+                  type: number
+                  format: float
+                  description: Rating of the movie (0 to 10)
+                movie[director]:
+                  type: string
+                  description: Director of the movie
+                movie[duration]:
+                  type: integer
+                  description: Duration of the movie in minutes
+                movie[description]:
+                  type: string
+                  description: Description of the movie (max 1000 characters)
+                movie[main_lead]:
+                  type: string
+                  description: Main lead actor/actress of the movie
+                movie[streaming_platform]:
+                  type: string
+                  description: Streaming platform (Amazon, Netflix, Hulu, Disney+, HBO)
+                  enum: ["Amazon", "Netflix", "Hulu", "Disney+", "HBO"]
+                movie[premium]:
+                  type: boolean
+                  description: Whether the movie is premium
+                movie[poster]:
+                  type: string
+                  format: binary
+                  description: Poster image file (JPEG or PNG)
+                movie[banner]:
+                  type: string
+                  format: binary
+                  description: Banner image file (JPEG or PNG)
     delete:
       summary: Deletes a movie
       tags:
@@ -458,20 +580,7 @@ paths:
                 type: object
                 properties:
                   user:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      email:
-                        type: string
-                      first_name:
-                        type: string
-                      last_name:
-                        type: string
-                      mobile_number:
-                        type: string
-                      role:
-                        type: string
+                    $ref: '#/components/schemas/user'
         '403':
           description: forbidden
           content:
@@ -594,6 +703,8 @@ components:
     user:
       type: object
       properties:
+        id:
+          type: integer
         first_name:
           type: string
         last_name:
@@ -605,12 +716,60 @@ components:
           type: string
         mobile_number:
           type: string
+        role:
+          type: string
       required:
       - first_name
       - last_name
       - email
       - password
       - mobile_number
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        genre:
+          type: string
+        release_year:
+          type: integer
+        rating:
+          type: number
+          format: float
+        director:
+          type: string
+        duration:
+          type: integer
+        description:
+          type: string
+        main_lead:
+          type: string
+        streaming_platform:
+          type: string
+        premium:
+          type: boolean
+        poster_url:
+          type: string
+        banner_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - title
+      - genre
+      - release_year
+      - director
+      - duration
+      - description
+      - main_lead
+      - streaming_platform
   securitySchemes:
     Bearer:
       type: http

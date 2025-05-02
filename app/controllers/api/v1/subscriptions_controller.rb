@@ -30,6 +30,32 @@ module Api
         end
       end
 
+      def create_checkout_session
+        user = current_user
+        session = Stripe::Checkout::Session.create(
+          payment_method_types: ['card'],
+          line_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Premium Subscription',
+              },
+              unit_amount: 1000, # $10.00
+              recurring: { # Add recurring hash for subscription mode
+                interval: 'month', # Can be 'day', 'week', 'month', or 'year'
+                interval_count: 1  # Billing frequency (e.g., every 1 month)
+              }
+            },
+            quantity: 1,
+          }],
+          mode: 'subscription',
+          success_url: 'http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}',
+          cancel_url: 'http://localhost:3000/cancel',
+          metadata: { user_id: user.id }
+        )
+        render json: { checkout_url: session.url }, status: :ok
+      end
+      
       private
 
       def set_user

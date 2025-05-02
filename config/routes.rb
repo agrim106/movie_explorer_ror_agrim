@@ -31,7 +31,11 @@ Rails.application.routes.draw do
       resources :movies, only: [:index, :show, :create, :update, :destroy]
 
       # Routes for SubscriptionsController
-      resources :subscriptions, only: [:create, :update, :destroy]
+      resources :subscriptions, only: [:create, :update, :destroy] do
+        post 'checkout', on: :collection, action: :create_checkout_session
+      end
+
+      post 'stripe/webhook', to: 'stripe#webhook'
     end
   end
 end
