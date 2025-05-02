@@ -346,6 +346,96 @@ paths:
           description: movie deleted
         '401':
           description: unauthorized
+  "/api/v1/subscriptions":
+    post:
+      summary: Creates a subscription
+      tags:
+      - Subscriptions
+      security:
+      - Bearer: []
+      parameters: []
+      responses:
+        '201':
+          description: subscription created
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscription:
+                  type: object
+                  properties:
+                    start_date:
+                      type: string
+                      format: date-time
+                    end_date:
+                      type: string
+                      format: date-time
+                    premium:
+                      type: boolean
+                    active:
+                      type: boolean
+                  required:
+                  - start_date
+                  - premium
+                  - active
+  "/api/v1/subscriptions/{id}":
+    patch:
+      summary: Updates a subscription
+      tags:
+      - Subscriptions
+      security:
+      - Bearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: subscription updated
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscription:
+                  type: object
+                  properties:
+                    start_date:
+                      type: string
+                      format: date-time
+                    end_date:
+                      type: string
+                      format: date-time
+                    premium:
+                      type: boolean
+                    active:
+                      type: boolean
+    delete:
+      summary: Deletes a subscription
+      tags:
+      - Subscriptions
+      security:
+      - Bearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '204':
+          description: subscription deleted
+        '401':
+          description: unauthorized
   "/api/v1/users/{id}":
     get:
       summary: Retrieves a user

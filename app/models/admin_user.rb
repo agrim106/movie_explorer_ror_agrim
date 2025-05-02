@@ -1,10 +1,26 @@
 class AdminUser < ApplicationRecord
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
-  devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+  devise :database_authenticatable, :recoverable, :rememberable, :validatable
 
-  def self.ransackable_attributes(auth_object = nil)
-    ["created_at", "email", "id", "remember_created_at", "updated_at"]
+  def generate_jwt
+    payload = { user_id: id, role: 'admin', exp: 24.hours.from_now.to_i }
+    JWT.encode(payload, ENV['JWT_SECRET'], 'HS256')
+  end
+
+  def self.authenticate(email, password)
+    return nil if email.blank? || password.blank?
+    admin_user = find_by(email: email.downcase.strip)
+    admin_user if admin_user&.valid_password?(password)
+  end
+
+  def admin?
+    true # AdminUser is always an admin
+  end
+
+  def supervisor?
+    false
+  end
+
+  def common_user?
+    false
   end
 end
