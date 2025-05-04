@@ -70,7 +70,7 @@ end
 gem 'devise'
 
 gem 'jwt', '~> 2.7'      # For JWT generation
-gem 'activeadmin'
+
 gem 'activestorage'
 gem 'stripe' # ya 'razorpay'
 gem 'fcm'
@@ -78,13 +78,12 @@ gem "rswag"
 gem 'rswag-api'
 gem 'rswag-ui'
 gem 'rswag-specs'
-
+gem 'redis'
 gem 'rack-cors'
 gem 'dotenv-rails', groups: [:development, :test]
-
+gem 'sidekiq', '~> 6.5.0'
 gem 'faker'
 gem 'database_cleaner-active_record'
-gem 'activeadmin'
 gem 'sassc-rails'
 gem 'highcharts-rails'
 group :development, :test do

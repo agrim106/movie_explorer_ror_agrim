@@ -65,8 +65,4 @@ class User < ApplicationRecord
   def create_default_subscription
     Subscription.create(user: self, start_date: Time.current, end_date: nil) unless subscription
   end
-
-  def role_cannot_be_changed
-    errors.add(:role, "cannot be changed directly") if role_changed? && !admin? # Only admin can change roles via update_role
-  end
 end
