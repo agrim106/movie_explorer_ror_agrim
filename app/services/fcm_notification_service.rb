@@ -4,7 +4,7 @@ class FcmNotificationService
 
     # Filter users who have notifications enabled and a device token
     tokens = users.select { |user| user.notification_enabled && user.device_token.present? }.map(&:device_token)
-    send_to_tokens(tokens, title, body)
+    send_notification_to_tokens(tokens, title, body) # Fixed: Changed to correct method name
   end
 
   def self.send_notification_to_tokens(tokens, title, body)
