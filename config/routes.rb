@@ -4,10 +4,10 @@ Rails.application.routes.draw do
   ActiveAdmin.routes(self)
 
   # Mount RSwag UI at /api-docs (for UI interface)
-  mount Rswag::Ui::Engine => '/api-docs'
+  mount RSwag::Ui::Engine => '/api-docs'
 
   # Mount RSwag API at a simpler path (for API definition)
-  mount Rswag::Api::Engine => '/api-docs'
+  mount RSwag::Api::Engine => '/api-docs'
 
   # API Namespace
   namespace :api do
@@ -24,6 +24,11 @@ Rails.application.routes.draw do
         end
 
         resource :subscription, only: [:update], controller: 'subscriptions/admin'
+
+        member do
+          patch 'update_device_token', action: :update_device_token
+          patch 'update_notification_settings', action: :update_notification_settings
+        end
       end
 
       # Routes for MoviesController
@@ -35,6 +40,7 @@ Rails.application.routes.draw do
         post 'checkout', on: :collection, action: :create_checkout_session
       end
 
+      # Stripe Webhook Route
       post 'stripe/webhook', to: 'stripe#webhook'
     end
   end

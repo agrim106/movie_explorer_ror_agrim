@@ -13,29 +13,23 @@ module Api
       end
 
       def create
-        user = User.new(user_params.except(:role))
-        user.role = 'user' # Force role to 'user'
-        if user.save
-          token = user.generate_jwt
-          render json: { token: token, user: { email: user.email, first_name: user.first_name, role: user.role } }, status: :created
+        @user = User.new(user_params)
+        if @user.save
+          # Send welcome notification if enabled
+          FcmNotificationService.send_notification([@user], "Welcome to Movie Explorer!", "Thanks for joining us, #{@user.first_name}!")
+          render json: @user, status: :created
         else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
       def sign_in
-        email = params.dig(:user, :email)
-        password = params.dig(:user, :password)
-
-        if email.blank? || password.blank?
-          render json: { error: 'Email and password are required' }, status: :bad_request
-          return
-        end
-
-        user = User.authenticate(email, password)
-        if user
-          token = user.generate_jwt
-          render json: { token: token, user: { email: user.email, first_name: user.first_name, role: user.role } }, status: :ok
+        @user = User.find_by(email: params[:user][:email])
+        if @user&.authenticate(params[:user][:password])
+          token = encode_token({ user_id: @user.id })
+          # Send login notification if enabled
+          FcmNotificationService.send_notification([@user], "Welcome Back!", "You’ve successfully logged in, #{@user.first_name}!")
+          render json: { id: @user.id, email: @user.email, first_name: @user.first_name, last_name: @user.last_name, mobile_number: @user.mobile_number, role: @user.role, token: token }, status: :ok
         else
           render json: { error: 'Invalid email or password' }, status: :unauthorized
         end
@@ -54,8 +48,24 @@ module Api
       end
 
       def destroy
+        @user = User.find(params[:id])
+        # Save device token before deleting user
+        device_token = @user.device_token if @user.notification_enabled
         @user.destroy
+        # Send notification after deletion if notifications were enabled
+        if device_token.present?
+          FcmNotificationService.send_notification_to_tokens([device_token], "Account Deleted", "Your Movie Explorer account has been deleted.")
+        end
         head :no_content
+      end
+
+      def update_notification_settings
+        @user = current_user
+        if @user.update(notification_enabled: params[:notification_enabled])
+          render json: { message: 'Notification settings updated successfully' }, status: :ok
+        else
+          render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
+        end
       end
 
       def update_role
@@ -89,6 +99,15 @@ module Api
           end
         else
           render json: { error: 'Invalid or expired token' }, status: :unprocessable_entity
+        end
+      end
+
+      def update_device_token
+        @user = current_user
+        if @user.update(device_token: params[:device_token])
+          render json: { message: 'Device token updated successfully' }, status: :ok
+        else
+          render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
         end
       end
 

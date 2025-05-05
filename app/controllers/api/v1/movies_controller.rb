@@ -21,11 +21,16 @@ module Api
       end
 
       def create
-        movie = Movie.new(movie_params)
-        if movie.save
-          render json: movie, status: :created
+        @movie = Movie.new(movie_params)
+        if @movie.save
+          if @movie.premium?
+            # Send notification to premium users who have notifications enabled
+            premium_users = User.joins(:subscription).where(subscriptions: { premium: true })
+            FcmNotificationService.send_notification(premium_users, "New Premium Movie!", "Check out #{@movie.title} now!")
+          end
+          render json: { message: 'Movie added successfully', movie: @movie }, status: :created
         else
-          render json: { errors: movie.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: @movie.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
