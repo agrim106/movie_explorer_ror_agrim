@@ -13,6 +13,11 @@ class User < ApplicationRecord
   has_one :subscription, dependent: :destroy
   after_create :create_default_subscription
 
+  # Fix inspect error
+  def inspect
+    "#<User id: #{id}, email: #{email}, role: #{role}>"
+  end
+
   def generate_jwt
     payload = { user_id: id, role: role, exp: 24.hours.from_now.to_i }
     JWT.encode(payload, ENV['JWT_SECRET'], 'HS256')

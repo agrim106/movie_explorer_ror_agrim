@@ -24,9 +24,9 @@ module Api
       end
 
       def sign_in
-        @user = User.find_by(email: params[:user][:email])
-        if @user&.authenticate(params[:user][:password])
-          token = encode_token({ user_id: @user.id })
+        @user = User.authenticate(params[:user][:email], params[:user][:password])
+        if @user
+          token = @user.generate_jwt
           # Send login notification if enabled
           FcmNotificationService.send_notification([@user], "Welcome Back!", "You’ve successfully logged in, #{@user.first_name}!")
           render json: { id: @user.id, email: @user.email, first_name: @user.first_name, last_name: @user.last_name, mobile_number: @user.mobile_number, role: @user.role, token: token }, status: :ok
