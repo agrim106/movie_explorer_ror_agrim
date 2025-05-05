@@ -4,10 +4,10 @@ Rails.application.routes.draw do
   ActiveAdmin.routes(self)
 
   # Mount RSwag UI at /api-docs (for UI interface)
-  mount RSwag::Ui::Engine => '/api-docs'
+  mount Rswag::Ui::Engine => '/api-docs'
 
   # Mount RSwag API at a simpler path (for API definition)
-  mount RSwag::Api::Engine => '/api-docs'
+  mount Rswag::Api::Engine => '/api-docs'
 
   # API Namespace
   namespace :api do
