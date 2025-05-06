@@ -1,6 +1,5 @@
 class User < ApplicationRecord
-  devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+  devise :database_authenticatable, :registerable, :rememberable, :validatable
 
   enum role: { user: 0, supervisor: 1, admin: 2 }, _default: :user
 
@@ -8,6 +7,7 @@ class User < ApplicationRecord
   validates :last_name, presence: true
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :mobile_number, presence: true, uniqueness: true, length: { is: 10 }
+  validates :device_token, uniqueness: true, allow_nil: true
   before_save { self.email = email.downcase }
 
   has_one :subscription, dependent: :destroy
@@ -32,17 +32,6 @@ class User < ApplicationRecord
     return nil if email.blank? || password.blank?
     user = find_by(email: email.downcase.strip)
     user if user&.valid_password?(password) # Devise method
-  end
-
-  def generate_password_reset_token
-    self.reset_password_token = SecureRandom.urlsafe_base64
-    self.reset_password_sent_at = Time.now.utc
-    save!
-    reset_password_token
-  end
-
-  def password_reset_expired?
-    reset_password_sent_at < 2.hours.ago
   end
 
   def self.ransackable_attributes(auth_object = nil)

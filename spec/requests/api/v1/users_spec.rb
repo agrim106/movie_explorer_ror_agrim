@@ -1,89 +1,11 @@
 require 'swagger_helper'
 
 RSpec.describe 'Users API', type: :request do
-  path '/api/v1/users' do
-    get 'Retrieves users' do
-      tags 'Users'
-      produces 'application/json'
-      security [Bearer: []]
-
-      response '200', 'users retrieved' do
-        schema type: :array,
-               items: {
-                 type: :object,
-                 properties: {
-                   id: { type: :integer },
-                   email: { type: :string },
-                   first_name: { type: :string },
-                   last_name: { type: :string },
-                   mobile_number: { type: :string },
-                   role: { type: :string }
-                 }
-               }
-
-        run_test!
-      end
-
-      response '403', 'forbidden' do
-        schema type: :object,
-               properties: {
-                 error: { type: :string }
-               }
-        run_test!
-      end
-    end
-
-    post 'Creates a user' do
-      tags 'Users'
-      consumes 'application/json'
-      parameter name: :user, in: :body, schema: {
-        type: :object,
-        properties: {
-          user: {
-            type: :object,
-            properties: {
-              first_name: { type: :string },
-              last_name: { type: :string },
-              email: { type: :string },
-              password: { type: :string },
-              mobile_number: { type: :string }
-            },
-            required: ['first_name', 'last_name', 'email', 'password', 'mobile_number']
-          }
-        }
-      }
-
-      response '201', 'user created' do
-        schema type: :object,
-               properties: {
-                 token: { type: :string },
-                 user: {
-                   type: :object,
-                   properties: {
-                     email: { type: :string },
-                     first_name: { type: :string },
-                     role: { type: :string }
-                   }
-                 }
-               }
-
-        run_test!
-      end
-
-      response '422', 'invalid request' do
-        schema type: :object,
-               properties: {
-                 errors: { type: :array, items: { type: :string } }
-               }
-        run_test!
-      end
-    end
-  end
-
   path '/api/v1/users/sign_in' do
-    post 'Signs in a user' do
+    post 'Sign in a user' do
       tags 'Users'
       consumes 'application/json'
+      produces 'application/json'
       parameter name: :user, in: :body, schema: {
         type: :object,
         properties: {
@@ -95,27 +17,26 @@ RSpec.describe 'Users API', type: :request do
             },
             required: ['email', 'password']
           }
-        }
+        },
+        required: ['user']
       }
 
-      response '200', 'user signed in' do
+      response '200', 'User signed in successfully' do
         schema type: :object,
                properties: {
-                 token: { type: :string },
-                 user: {
-                   type: :object,
-                   properties: {
-                     email: { type: :string },
-                     first_name: { type: :string },
-                     role: { type: :string }
-                   }
-                 }
-               }
-
+                 id: { type: :integer },
+                 email: { type: :string },
+                 first_name: { type: :string },
+                 last_name: { type: :string },
+                 mobile_number: { type: :string },
+                 role: { type: :string, enum: ['user', 'supervisor', 'admin'] },
+                 token: { type: :string }
+               },
+               required: ['id', 'email', 'first_name', 'last_name', 'mobile_number', 'role', 'token']
         run_test!
       end
 
-      response '401', 'unauthorized' do
+      response '401', 'Invalid email or password' do
         schema type: :object,
                properties: {
                  error: { type: :string }
@@ -126,14 +47,12 @@ RSpec.describe 'Users API', type: :request do
   end
 
   path '/api/v1/users/sign_out' do
-    post 'Signs out a user' do
+    post 'Sign out a user' do
       tags 'Users'
-      consumes 'application/json'
-      produces 'application/json'
       security [Bearer: []]
-      description 'Signs out a user, blacklists the JWT token, and clears their device token'
+      produces 'application/json'
 
-      response '200', 'Successfully signed out' do
+      response '200', 'User signed out successfully' do
         schema type: :object,
                properties: {
                  message: { type: :string }
@@ -152,32 +71,35 @@ RSpec.describe 'Users API', type: :request do
   end
 
   path '/api/v1/users/{id}' do
-    get 'Retrieves a user' do
+    get 'Retrieve a user' do
       tags 'Users'
-      produces 'application/json'
       security [Bearer: []]
+      produces 'application/json'
       parameter name: :id, in: :path, type: :integer, required: true
 
-      response '200', 'user retrieved' do
+      response '200', 'User retrieved successfully' do
         schema type: :object,
                properties: {
-                 user: {
-                   type: :object,
-                   properties: {
-                     id: { type: :integer },
-                     email: { type: :string },
-                     first_name: { type: :string },
-                     last_name: { type: :string },
-                     mobile_number: { type: :string },
-                     role: { type: :string }
-                   }
-                 }
-               }
-
+                 id: { type: :integer },
+                 email: { type: :string },
+                 first_name: { type: :string },
+                 last_name: { type: :string },
+                 mobile_number: { type: :string },
+                 role: { type: :string, enum: ['user', 'supervisor', 'admin'] }
+               },
+               required: ['id', 'email', 'first_name', 'last_name', 'mobile_number', 'role']
         run_test!
       end
 
-      response '403', 'forbidden' do
+      response '401', 'Unauthorized' do
+        schema type: :object,
+               properties: {
+                 error: { type: :string }
+               }
+        run_test!
+      end
+
+      response '403', 'Forbidden' do
         schema type: :object,
                properties: {
                  error: { type: :string }
@@ -186,10 +108,11 @@ RSpec.describe 'Users API', type: :request do
       end
     end
 
-    patch 'Updates a user' do
+    patch 'Update a user' do
       tags 'Users'
-      consumes 'application/json'
       security [Bearer: []]
+      consumes 'application/json'
+      produces 'application/json'
       parameter name: :id, in: :path, type: :integer, required: true
       parameter name: :user, in: :body, schema: {
         type: :object,
@@ -200,73 +123,69 @@ RSpec.describe 'Users API', type: :request do
               first_name: { type: :string },
               last_name: { type: :string },
               email: { type: :string },
-              password: { type: :string },
-              mobile_number: { type: :string }
+              mobile_number: { type: :string },
+              password: { type: :string }
             }
           }
-        }
+        },
+        required: ['user']
       }
 
-      response '200', 'user updated' do
+      response '200', 'User updated successfully' do
         schema type: :object,
                properties: {
-                 user: {
-                   type: :object,
-                   properties: {
-                     id: { type: :integer },
-                     email: { type: :string },
-                     first_name: { type: :string },
-                     last_name: { type: :string },
-                     mobile_number: { type: :string },
-                     role: { type: :string }
-                   }
-                 }
-               }
-
+                 id: { type: :integer },
+                 email: { type: :string },
+                 first_name: { type: :string },
+                 last_name: { type: :string },
+                 mobile_number: { type: :string },
+                 role: { type: :string, enum: ['user', 'supervisor', 'admin'] }
+               },
+               required: ['id', 'email', 'first_name', 'last_name', 'mobile_number', 'role']
         run_test!
       end
 
-      response '403', 'forbidden' do
+      response '401', 'Unauthorized' do
         schema type: :object,
                properties: {
                  error: { type: :string }
                }
         run_test!
       end
-    end
 
-    delete 'Deletes a user' do
-      tags 'Users'
-      security [Bearer: []]
-      parameter name: :id, in: :path, type: :integer, required: true
-
-      response '204', 'user deleted' do
-        run_test!
-      end
-
-      response '403', 'forbidden' do
+      response '403', 'Forbidden' do
         schema type: :object,
                properties: {
                  error: { type: :string }
+               }
+        run_test!
+      end
+
+      response '422', 'Invalid request' do
+        schema type: :object,
+               properties: {
+                 errors: { type: :array, items: { type: :string } }
                }
         run_test!
       end
     end
   end
 
-  path '/api/v1/users/password' do
-    post 'Creates a password reset' do
+  path '/api/v1/users/update_device_token' do
+    post 'Update device token' do
       tags 'Users'
+      security [Bearer: []]
       consumes 'application/json'
-      parameter name: :email, in: :body, schema: {
+      produces 'application/json'
+      parameter name: :device_token, in: :body, schema: {
         type: :object,
         properties: {
-          email: { type: :string }
+          device_token: { type: :string }
         },
-        required: ['email']
+        required: ['device_token']
       }
 
-      response '200', 'password reset instructions sent' do
+      response '200', 'Device token updated successfully' do
         schema type: :object,
                properties: {
                  message: { type: :string }
@@ -274,28 +193,39 @@ RSpec.describe 'Users API', type: :request do
         run_test!
       end
 
-      response '404', 'email not found' do
+      response '401', 'Unauthorized' do
         schema type: :object,
                properties: {
                  error: { type: :string }
+               }
+        run_test!
+      end
+
+      response '422', 'Invalid request' do
+        schema type: :object,
+               properties: {
+                 errors: { type: :array, items: { type: :string } }
                }
         run_test!
       end
     end
+  end
 
-    put 'Updates password with reset token' do
+  path '/api/v1/users/update_notification_preference' do
+    patch 'Update notification preference' do
       tags 'Users'
+      security [Bearer: []]
       consumes 'application/json'
-      parameter name: :params, in: :body, schema: {
+      produces 'application/json'
+      parameter name: :notification_enabled, in: :body, schema: {
         type: :object,
         properties: {
-          token: { type: :string },
-          password: { type: :string }
+          notification_enabled: { type: :boolean }
         },
-        required: ['token', 'password']
+        required: ['notification_enabled']
       }
 
-      response '200', 'password updated' do
+      response '200', 'Notification preference updated successfully' do
         schema type: :object,
                properties: {
                  message: { type: :string }
@@ -303,10 +233,18 @@ RSpec.describe 'Users API', type: :request do
         run_test!
       end
 
-      response '422', 'invalid or expired token' do
+      response '401', 'Unauthorized' do
         schema type: :object,
                properties: {
                  error: { type: :string }
+               }
+        run_test!
+      end
+
+      response '422', 'Invalid request' do
+        schema type: :object,
+               properties: {
+                 errors: { type: :array, items: { type: :string } }
                }
         run_test!
       end
