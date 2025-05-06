@@ -28,8 +28,8 @@ Rails.application.routes.draw do
       end
 
       # Routes for MoviesController
-      get 'movies/:genre', to: 'movies#index_by_genre'
-      resources :movies, only: [:index, :show, :create, :update, :destroy]
+      resources :movies, only: [:index, :show, :create, :update, :destroy], constraints: { id: /\d+/ }
+      get 'movies/:genre', to: 'movies#index_by_genre', constraints: { genre: /[^0-9]+/ }
 
       # Routes for SubscriptionsController
       resources :subscriptions, only: [:create, :update, :destroy] do

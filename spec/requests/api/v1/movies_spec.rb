@@ -22,12 +22,14 @@ RSpec.describe 'Movies API', type: :request do
                        rating: { type: :number },
                        director: { type: :string },
                        duration: { type: :integer },
+                       main_lead: { type: :string },
+                       streaming_platform: { type: :string, enum: ['Netflix', 'Amazon Prime', 'Disney+'] },
                        description: { type: :string },
                        plan: { type: :string, enum: ['basic', 'premium'] },
                        poster_url: { type: :string, nullable: true },
                        banner_url: { type: :string, nullable: true }
                      },
-                     required: ['id', 'title', 'genre', 'release_year', 'rating', 'director', 'duration', 'description', 'plan']
+                     required: ['id', 'title', 'genre', 'release_year', 'rating', 'director', 'duration', 'main_lead', 'streaming_platform', 'description', 'plan']
                    }
                  },
                  total_pages: { type: :integer },
@@ -53,28 +55,39 @@ RSpec.describe 'Movies API', type: :request do
           rating: { type: :number, format: :float },
           director: { type: :string },
           duration: { type: :integer },
+          main_lead: { type: :string },
+          streaming_platform: { type: :string, enum: ['Netflix', 'Amazon Prime', 'Disney+'] },
           description: { type: :string },
           premium: { type: :boolean },
           poster: { type: :string, format: :binary, description: 'Poster image file (e.g., JPEG, PNG)' },
           banner: { type: :string, format: :binary, description: 'Banner image file (e.g., JPEG, PNG)' }
         },
-        required: ['title', 'genre', 'release_year', 'rating', 'director', 'duration', 'description', 'premium']
+        required: ['title', 'genre', 'release_year', 'rating', 'director', 'duration', 'main_lead', 'streaming_platform', 'description', 'premium']
       }
 
       response '201', 'Movie created' do
         schema type: :object,
                properties: {
-                 id: { type: :integer },
-                 title: { type: :string },
-                 genre: { type: :string },
-                 release_year: { type: :integer },
-                 rating: { type: :number },
-                 director: { type: :string },
-                 duration: { type: :integer },
-                 description: { type: :string },
-                 plan: { type: :string, enum: ['basic', 'premium'] },
-                 poster_url: { type: :string, nullable: true },
-                 banner_url: { type: :string, nullable: true }
+                 message: { type: :string },
+                 movie: {
+                   type: :object,
+                   properties: {
+                     id: { type: :integer },
+                     title: { type: :string },
+                     genre: { type: :string },
+                     release_year: { type: :integer },
+                     rating: { type: :number },
+                     director: { type: :string },
+                     duration: { type: :integer },
+                     main_lead: { type: :string },
+                     streaming_platform: { type: :string, enum: ['Netflix', 'Amazon Prime', 'Disney+'] },
+                     description: { type: :string },
+                     plan: { type: :string, enum: ['basic', 'premium'] },
+                     poster_url: { type: :string, nullable: true },
+                     banner_url: { type: :string, nullable: true }
+                   },
+                   required: ['id', 'title', 'genre', 'release_year', 'rating', 'director', 'duration', 'main_lead', 'streaming_platform', 'description', 'plan']
+                 }
                }
         run_test!
       end
@@ -87,7 +100,7 @@ RSpec.describe 'Movies API', type: :request do
         run_test!
       end
 
-      response '401', 'Unauthorized' do
+      response '403', 'Forbidden' do
         schema type: :object,
                properties: {
                  error: { type: :string }
@@ -113,11 +126,14 @@ RSpec.describe 'Movies API', type: :request do
                  rating: { type: :number },
                  director: { type: :string },
                  duration: { type: :integer },
+                 main_lead: { type: :string },
+                 streaming_platform: { type: :string, enum: ['Netflix', 'Amazon Prime', 'Disney+'] },
                  description: { type: :string },
                  plan: { type: :string, enum: ['basic', 'premium'] },
                  poster_url: { type: :string, nullable: true },
                  banner_url: { type: :string, nullable: true }
-               }
+               },
+               required: ['id', 'title', 'genre', 'release_year', 'rating', 'director', 'duration', 'main_lead', 'streaming_platform', 'description', 'plan']
         run_test!
       end
 
@@ -138,17 +154,20 @@ RSpec.describe 'Movies API', type: :request do
       parameter name: :movie, in: :body, schema: {
         type: :object,
         properties: {
-          title: { type: :string },
-          genre: { type: :string },
-          release_year: { type: :integer },
-          rating: { type: :number, format: :float },
-          director: { type: :string },
-          duration: { type: :integer },
-          description: { type: :string },
-          premium: { type: :boolean },
-          poster: { type: :string, format: :binary, description: 'Poster image file (e.g., JPEG, PNG)' },
-          banner: { type: :string, format: :binary, description: 'Banner image file (e.g., JPEG, PNG)' }
+          title: { type: :string, nullable: true },
+          genre: { type: :string, nullable: true },
+          release_year: { type: :integer, nullable: true },
+          rating: { type: :number, format: :float, nullable: true },
+          director: { type: :string, nullable: true },
+          duration: { type: :integer, nullable: true },
+          main_lead: { type: :string, nullable: true },
+          streaming_platform: { type: :string, enum: ['Netflix', 'Amazon Prime', 'Disney+'], nullable: true },
+          description: { type: :string, nullable: true },
+          premium: { type: :boolean, nullable: true },
+          poster: { type: :string, format: :binary, description: 'Poster image file (e.g., JPEG, PNG)', nullable: true },
+          banner: { type: :string, format: :binary, description: 'Banner image file (e.g., JPEG, PNG)', nullable: true }
         }
+        # No required fields for PATCH
       }
 
       response '200', 'Movie updated' do
@@ -161,11 +180,14 @@ RSpec.describe 'Movies API', type: :request do
                  rating: { type: :number },
                  director: { type: :string },
                  duration: { type: :integer },
+                 main_lead: { type: :string },
+                 streaming_platform: { type: :string, enum: ['Netflix', 'Amazon Prime', 'Disney+'] },
                  description: { type: :string },
                  plan: { type: :string, enum: ['basic', 'premium'] },
                  poster_url: { type: :string, nullable: true },
                  banner_url: { type: :string, nullable: true }
-               }
+               },
+               required: ['id', 'title', 'genre', 'release_year', 'rating', 'director', 'duration', 'main_lead', 'streaming_platform', 'description', 'plan']
         run_test!
       end
 
@@ -177,7 +199,15 @@ RSpec.describe 'Movies API', type: :request do
         run_test!
       end
 
-      response '401', 'Unauthorized' do
+      response '403', 'Forbidden' do
+        schema type: :object,
+               properties: {
+                 error: { type: :string }
+               }
+        run_test!
+      end
+
+      response '404', 'Not Found' do
         schema type: :object,
                properties: {
                  error: { type: :string }
@@ -203,7 +233,7 @@ RSpec.describe 'Movies API', type: :request do
         run_test!
       end
 
-      response '401', 'Unauthorized' do
+      response '403', 'Forbidden' do
         schema type: :object,
                properties: {
                  error: { type: :string }
@@ -235,12 +265,14 @@ RSpec.describe 'Movies API', type: :request do
                        rating: { type: :number },
                        director: { type: :string },
                        duration: { type: :integer },
+                       main_lead: { type: :string },
+                       streaming_platform: { type: :string, enum: ['Netflix', 'Amazon Prime', 'Disney+'] },
                        description: { type: :string },
                        plan: { type: :string, enum: ['basic', 'premium'] },
                        poster_url: { type: :string, nullable: true },
                        banner_url: { type: :string, nullable: true }
                      },
-                     required: ['id', 'title', 'genre', 'release_year', 'rating', 'director', 'duration', 'description', 'plan']
+                     required: ['id', 'title', 'genre', 'release_year', 'rating', 'director', 'duration', 'main_lead', 'streaming_platform', 'description', 'plan']
                    }
                  },
                  total_pages: { type: :integer },

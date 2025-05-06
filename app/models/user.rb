@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable, :rememberable, :validatable
 
-  enum role: { user: 0, supervisor: 1, admin: 2 }, _default: :user
+  enum role: { user: 0, supervisor: 1}
 
   validates :first_name, presence: true
   validates :last_name, presence: true

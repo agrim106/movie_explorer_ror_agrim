@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_05_06_082921) do
+ActiveRecord::Schema[7.1].define(version: 2025_05_06_113015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -91,8 +91,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_06_082921) do
     t.boolean "premium", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "poster_url"
-    t.string "banner_url"
     t.index ["release_year"], name: "index_movies_on_release_year"
     t.index ["title"], name: "index_movies_on_title"
   end
