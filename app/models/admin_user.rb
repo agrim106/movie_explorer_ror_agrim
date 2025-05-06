@@ -12,6 +12,10 @@ class AdminUser < ApplicationRecord
     admin_user if admin_user&.valid_password?(password)
   end
 
+  def self.ransackable_attributes(auth_object = nil)
+    ["created_at", "email", "encrypted_password", "id", "id_value", "remember_created_at", "reset_password_sent_at", "reset_password_token", "updated_at"]
+  end
+  
   def admin?
     true # AdminUser is always an admin
   end
