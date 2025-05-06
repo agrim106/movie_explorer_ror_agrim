@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       post '/users/password', to: 'users#create_password_reset'
       put '/users/password', to: 'users#update_password'
       post '/users/sign_in', to: 'users#sign_in'
+      post '/users/sign_out', to: 'users#sign_out' # Added Signout route
 
       resources :users, only: [:index, :show, :create, :update, :destroy] do
         collection do

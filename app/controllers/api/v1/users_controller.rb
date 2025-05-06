@@ -2,7 +2,7 @@ module Api
   module V1
     class UsersController < ApplicationController
       skip_before_action :authenticate_user!, only: [:create, :sign_in, :create_password_reset, :update_password]
-      before_action :authenticate_user, only: [:index, :show, :update, :destroy, :update_role]
+      before_action :authenticate_user, only: [:index, :show, :update, :destroy, :update_role, :sign_out]
       before_action :set_user, only: [:show, :update, :destroy, :update_role]
       before_action :authorize_admin, only: [:index, :destroy, :update_role]
       before_action :authorize_self_or_admin, only: [:show, :update]
@@ -15,7 +15,6 @@ module Api
       def create
         @user = User.new(user_params)
         if @user.save
-          # Send welcome notification if enabled
           FcmNotificationService.send_notification([@user], "Welcome to Movie Explorer!", "Thanks for joining us, #{@user.first_name}!")
           render json: @user, status: :created
         else
@@ -27,11 +26,23 @@ module Api
         @user = User.authenticate(params[:user][:email], params[:user][:password])
         if @user
           token = @user.generate_jwt
-          # Send login notification if enabled
           FcmNotificationService.send_notification([@user], "Welcome Back!", "You’ve successfully logged in, #{@user.first_name}!")
           render json: { id: @user.id, email: @user.email, first_name: @user.first_name, last_name: @user.last_name, mobile_number: @user.mobile_number, role: @user.role, token: token }, status: :ok
         else
           render json: { error: 'Invalid email or password' }, status: :unauthorized
+        end
+      end
+
+      def sign_out
+        if current_user
+          token = request.headers['Authorization']&.split(' ')&.last
+          if token
+            current_user.blacklisted_tokens.create!(token: token, expires_at: Time.now)
+          end
+          current_user.update(device_token: nil)
+          render json: { message: 'Successfully signed out' }, status: :ok
+        else
+          render json: { error: 'Unauthorized' }, status: :unauthorized
         end
       end
 
@@ -40,7 +51,7 @@ module Api
       end
 
       def update
-        if @user.update(user_params.except(:role)) # Remove role from params
+        if @user.update(user_params.except(:role))
           render json: { user: { id: @user.id, email: @user.email, first_name: @user.first_name, last_name: @user.last_name, mobile_number: @user.mobile_number, role: @user.role } }
         else
           render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
@@ -49,10 +60,8 @@ module Api
 
       def destroy
         @user = User.find(params[:id])
-        # Save device token before deleting user
         device_token = @user.device_token if @user.notification_enabled
         @user.destroy
-        # Send notification after deletion if notifications were enabled
         if device_token.present?
           FcmNotificationService.send_notification_to_tokens([device_token], "Account Deleted", "Your Movie Explorer account has been deleted.")
         end
@@ -81,7 +90,6 @@ module Api
         user = User.find_by(email: params[:email]&.downcase)
         if user
           token = user.generate_password_reset_token
-          # TODO: Send email with reset link
           render json: { message: 'Password reset instructions sent' }, status: :ok
         else
           render json: { error: 'Email not found' }, status: :not_found
@@ -128,6 +136,9 @@ module Api
         begin
           decoded = JWT.decode(token, ENV['JWT_SECRET'], true, { algorithm: 'HS256' }).first
           @current_user = User.find(decoded['user_id'])
+          if @current_user.token_blacklisted?(token)
+            render json: { error: 'Unauthorized: Token is blacklisted' }, status: :unauthorized
+          end
         rescue JWT::DecodeError, ActiveRecord::RecordNotFound
           render json: { error: 'Unauthorized' }, status: :unauthorized
         end

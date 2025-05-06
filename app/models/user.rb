@@ -11,6 +11,7 @@ class User < ApplicationRecord
   before_save { self.email = email.downcase }
 
   has_one :subscription, dependent: :destroy
+  has_many :blacklisted_tokens, dependent: :destroy
   after_create :create_default_subscription
 
   # Fix inspect error
@@ -21,6 +22,10 @@ class User < ApplicationRecord
   def generate_jwt
     payload = { user_id: id, role: role, exp: 24.hours.from_now.to_i }
     JWT.encode(payload, ENV['JWT_SECRET'], 'HS256')
+  end
+
+  def token_blacklisted?(token)
+    blacklisted_tokens.exists?(token: token)
   end
 
   def self.authenticate(email, password)

@@ -125,6 +125,32 @@ RSpec.describe 'Users API', type: :request do
     end
   end
 
+  path '/api/v1/users/sign_out' do
+    post 'Signs out a user' do
+      tags 'Users'
+      consumes 'application/json'
+      produces 'application/json'
+      security [Bearer: []]
+      description 'Signs out a user, blacklists the JWT token, and clears their device token'
+
+      response '200', 'Successfully signed out' do
+        schema type: :object,
+               properties: {
+                 message: { type: :string }
+               }
+        run_test!
+      end
+
+      response '401', 'Unauthorized' do
+        schema type: :object,
+               properties: {
+                 error: { type: :string }
+               }
+        run_test!
+      end
+    end
+  end
+
   path '/api/v1/users/{id}' do
     get 'Retrieves a user' do
       tags 'Users'
