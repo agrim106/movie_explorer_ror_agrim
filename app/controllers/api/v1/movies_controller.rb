@@ -22,23 +22,25 @@ module Api
       end
 
       def create
-        @movie = Movie.new(movie_params)
-        if @movie.save
-          if @movie.premium?
+        result = Movie.create_movie(movie_params)
+        if result[:success]
+          movie = result[:movie]
+          if movie.premium?
             premium_users = User.joins(:subscription).where(subscriptions: { premium: true })
-            FcmNotificationService.send_notification(premium_users, "New Premium Movie!", "Check out #{@movie.title} now!")
+            FcmNotificationService.send_notification(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
           end
-          render json: { message: 'Movie added successfully', movie: @movie.as_json(methods: :plan) }, status: :created
+          render json: { message: 'Movie added successfully', movie: movie.as_json(methods: :plan) }, status: :created
         else
-          render json: { errors: @movie.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: result[:errors] }, status: :unprocessable_entity
         end
       end
 
       def update
-        if @movie.update(movie_params)
-          render json: @movie.as_json(methods: :plan)
+        result = @movie.update_movie(movie_params)
+        if result[:success]
+          render json: result[:movie].as_json(methods: :plan), status: :ok
         else
-          render json: { errors: @movie.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: result[:errors] }, status: :unprocessable_entity
         end
       end
 
@@ -56,22 +58,50 @@ module Api
       end
 
       def movie_params
-        movie_params = params[:movie] || params
-        # Convert empty strings to nil for all fields except poster and banner
-        movie_params.each do |key, value|
-          next if %w[poster banner].include?(key.to_s) # Skip poster and banner
-          movie_params[key] = nil if value == ""
+        movie_attrs = [
+          :title, :genre, :release_year, :rating, :director, :duration,
+          :main_lead, :streaming_platform, :description, :premium, :poster, :banner
+        ]
+
+        # Handle both multipart/form-data (movie[title]) and JSON/params[:movie] formats
+        permitted_params = if params[:movie].present?
+                             params.require(:movie).permit(movie_attrs).to_h
+                           else
+                             params.permit(movie_attrs.map { |attr| "movie[#{attr}]" }).to_h.transform_keys do |key|
+                               key.sub(/^movie\[(.*?)\]$/, '\1').to_sym
+                             end
+                           end
+
+        Rails.logger.info "Permitted params: #{permitted_params.inspect}"
+
+        # Filter out empty strings for non-file fields, but keep poster/banner as is
+        filtered_params = permitted_params.each_with_object({}) do |(key, value), hash|
+          if %w[poster banner].include?(key.to_s)
+            # For file fields, only include if present
+            hash[key] = value if value.present?
+          else
+            # For non-file fields, only include if not nil and not an empty string after stripping whitespace
+            if value.is_a?(String)
+              stripped_value = value.strip
+              hash[key] = stripped_value if stripped_value != ""
+            else
+              hash[key] = value unless value.nil?
+            end
+          end
         end
-        # Explicitly exclude poster and banner if empty string to preserve existing attachments
-        movie_params.delete(:poster) if movie_params[:poster] == ""
-        movie_params.delete(:banner) if movie_params[:banner] == ""
-        # Handle premium: convert string to boolean, default to false if nil or invalid
-        movie_params[:premium] = case movie_params[:premium]
-                                when "true" then true
-                                when "false" then false
-                                else false # Default to false if nil or invalid
-                                end
-        movie_params.permit(:title, :genre, :release_year, :rating, :director, :duration, :main_lead, :streaming_platform, :description, :premium, :poster, :banner)
+
+        Rails.logger.info "Filtered params: #{filtered_params.inspect}"
+
+        # Handle premium: convert string to boolean, only if provided
+        if filtered_params.key?(:premium)
+          filtered_params[:premium] = case filtered_params[:premium].to_s.downcase
+                                      when "true" then true
+                                      when "false" then false
+                                      else filtered_params[:premium]
+                                      end
+        end
+
+        filtered_params
       end
 
       def movies_paginated(movies)

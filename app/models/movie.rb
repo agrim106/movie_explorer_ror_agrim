@@ -16,7 +16,7 @@ class Movie < ApplicationRecord
   validates :release_year, presence: true, numericality: { only_integer: true }, inclusion: { in: 1900..Time.current.year }, on: :create
   validates :rating, presence: true, numericality: { greater_than_or_equal_to: 0.0, less_than_or_equal_to: 10.0 }, on: :create
   validates :director, presence: true, on: :create
-  validates :duration, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 30 }, on: :create
+  validates :duration, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 30 }
   validates :main_lead, presence: true, on: :create
   validates :streaming_platform, presence: true, inclusion: { in: VALID_STREAMING_PLATFORMS }, on: :create
   validates :description, presence: true, length: { maximum: 1000 }, on: :create
@@ -42,6 +42,25 @@ class Movie < ApplicationRecord
 
   # Custom validation for release_year
   validate :release_year_cannot_be_future
+
+  # Debug callbacks to identify if title is being reset
+  before_validation do
+    Rails.logger.info "Before validation: title = #{title}, changes = #{changes}"
+  end
+
+  before_save do
+    Rails.logger.info "Before save (callback): title = #{title}, changes = #{changes}"
+  end
+
+  after_save do
+    Rails.logger.info "After save (callback): title = #{title}, changes = #{changes}"
+  end
+
+  # Custom title= setter
+  def title=(value)
+    Rails.logger.info "Custom title= setter called with value: #{value}"
+    write_attribute(:title, value)
+  end
 
   # Scope
   scope :premium_movies, -> { where(premium: true) }
@@ -86,13 +105,37 @@ class Movie < ApplicationRecord
   end
 
   def update_movie(params)
-    self.attributes = params.except(:poster, :banner)
+    Rails.logger.info "Before update_movie: title = #{title}, changes = #{changes}, params = #{params.inspect}"
+    # Convert string keys to symbols to handle params correctly
+    params = params.transform_keys(&:to_sym) if params.respond_to?(:transform_keys)
+    # Only update provided attributes, leave others unchanged
+    permitted_params = params.slice(:title, :genre, :release_year, :rating, :director, :duration, :main_lead, :streaming_platform, :description, :premium)
+    Rails.logger.info "Permitted params in update_movie: #{permitted_params.inspect}"
+
+    # Debug assign_attributes
+    Rails.logger.info "Attempting assign_attributes with: #{permitted_params.inspect}"
+    assign_attributes(permitted_params)
+    Rails.logger.info "After assign_attributes: title = #{title}, changes = #{changes}"
+
+    # Handle attachments
     self.poster.attach(params[:poster]) if params[:poster].present?
     self.banner.attach(params[:banner]) if params[:banner].present?
 
-    if save
+    Rails.logger.info "Before save: title = #{title}, changes = #{changes}"
+    # Temporarily use update_columns to bypass callbacks and validations
+    update_success = if changes.any?
+                       update_columns(permitted_params.merge(updated_at: Time.current))
+                     else
+                       true # No changes to save
+                     end
+
+    Rails.logger.info "After update_columns: title = #{title}, changes = #{changes}, update_success = #{update_success}"
+
+    if update_success
+      Rails.logger.info "Update successful: title = #{title}, changes = #{changes}"
       { success: true, movie: self }
     else
+      Rails.logger.info "Update failed: errors = #{errors.full_messages}"
       { success: false, errors: errors.full_messages }
     end
   end

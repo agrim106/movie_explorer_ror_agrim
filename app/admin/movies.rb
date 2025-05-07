@@ -13,6 +13,7 @@ ActiveAdmin.register Movie do
     column :duration
     column :streaming_platform
     column :main_lead
+    column :description
     column :premium
     column :poster do |movie|
       image_tag(movie.poster.url, width: 100) if movie.poster.attached?
