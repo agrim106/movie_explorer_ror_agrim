@@ -103,3 +103,5 @@ gem 'active_storage_validations', '~> 1.0'
 # Ensure activeadmin aur active_storage bhi hain
 gem 'activeadmin'
 gem 'active_storage_base64'
+gem 'httparty'
+gem 'googleauth'

@@ -196,6 +196,10 @@ GEM
       activesupport (>= 5.2)
     highcharts-rails (6.0.3)
       railties (>= 3.1)
+    httparty (0.23.1)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     importmap-rails (2.1.0)
@@ -252,6 +256,8 @@ GEM
     minitest (5.25.5)
     msgpack (1.8.0)
     multi_json (1.15.0)
+    multi_xml (0.7.1)
+      bigdecimal (~> 3.1)
     multipart-post (2.4.1)
     mutex_m (0.3.0)
     net-http (0.6.0)
@@ -461,7 +467,9 @@ DEPENDENCIES
   factory_bot_rails
   faker
   fcm
+  googleauth
   highcharts-rails
+  httparty
   importmap-rails
   jbuilder
   jwt (~> 2.7)
