@@ -1,9 +1,11 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins '*' # Allow all origins during development
-    resource '*',
+    origins 'http://localhost:3000', 'https://movie-explorer-ror-agrim.onrender.com', '*'
+
+    resource '/api/v1/*',
       headers: :any,
-      expose: ['Authorization'], # <-- ye add karo future ke liye bhi kaam aayega
-      methods: [:get, :post, :put, :delete, :options]
+      expose: ['Authorization'],
+      methods: [:get, :post, :put, :patch, :delete, :options],
+      credentials: false
   end
 end
