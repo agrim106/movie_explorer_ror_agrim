@@ -18,23 +18,32 @@ module Api
 
       def show
         Rails.logger.info "Show action called for movie ID: #{params[:id]}"
-        render json: @movie.as_json(methods: :plan)
+        render json: @movie.as_json(methods: :plan).merge(
+          poster_url: @movie.poster.attached? ? generate_cloudinary_url(@movie.poster.blob) : nil,
+          banner_url: @movie.banner.attached? ? generate_cloudinary_url(@movie.banner.blob) : nil
+        )
       end
 
       def create
-  result = Movie.create_movie(movie_params)
-  if result[:success]
-    movie = result[:movie]
-    if movie.premium?
-      premium_users = User.joins(:subscription).where(subscriptions: { plan_type: 'premium' })
-      firebase = FirebaseService.new
-      firebase.send_notification_to_users(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
-    end
-    render json: { message: 'Movie added successfully', movie: movie.as_json(methods: :plan) }, status: :created
-  else
-    render json: { errors: result[:errors] }, status: :unprocessable_entity
-  end
-end
+        result = Movie.create_movie(movie_params)
+        if result[:success]
+          movie = result[:movie]
+          if movie.premium?
+            premium_users = User.joins(:subscription).where(subscriptions: { plan_type: 'premium' })
+            firebase = FirebaseService.new
+            firebase.send_notification_to_users(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
+          end
+          render json: {
+            message: 'Movie added successfully',
+            movie: movie.as_json(methods: :plan).merge(
+              poster_url: movie.poster.attached? ? generate_cloudinary_url(movie.poster.blob) : nil,
+              banner_url: movie.banner.attached? ? generate_cloudinary_url(movie.banner.blob) : nil
+            )
+          }, status: :created
+        else
+          render json: { errors: result[:errors] }, status: :unprocessable_entity
+        end
+      end
 
       def update
         result = @movie.update_movie(movie_params)
@@ -64,7 +73,6 @@ end
           :main_lead, :streaming_platform, :description, :premium, :poster, :banner
         ]
 
-        # Handle both multipart/form-data (movie[title]) and JSON/params[:movie] formats
         permitted_params = if params[:movie].present?
                              params.require(:movie).permit(movie_attrs).to_h
                            else
@@ -75,13 +83,10 @@ end
 
         Rails.logger.info "Permitted params: #{permitted_params.inspect}"
 
-        # Filter out empty strings for non-file fields, but keep poster/banner as is
         filtered_params = permitted_params.each_with_object({}) do |(key, value), hash|
           if %w[poster banner].include?(key.to_s)
-            # For file fields, only include if present
             hash[key] = value if value.present?
           else
-            # For non-file fields, only include if not nil and not an empty string after stripping whitespace
             if value.is_a?(String)
               stripped_value = value.strip
               hash[key] = stripped_value if stripped_value != ""
@@ -93,7 +98,6 @@ end
 
         Rails.logger.info "Filtered params: #{filtered_params.inspect}"
 
-        # Handle premium: convert string to boolean, only if provided
         if filtered_params.key?(:premium)
           filtered_params[:premium] = case filtered_params[:premium].to_s.downcase
                                       when "true" then true
@@ -108,10 +112,24 @@ end
       def movies_paginated(movies)
         paginated_movies = movies.page(params[:page]).per(10)
         {
-          movies: paginated_movies.as_json(methods: :plan),
+          movies: paginated_movies.map { |movie|
+            movie.as_json(methods: :plan).merge(
+              poster_url: movie.poster.attached? ? generate_cloudinary_url(movie.poster.blob) : nil,
+              banner_url: movie.banner.attached? ? generate_cloudinary_url(movie.banner.blob) : nil
+            )
+          },
           total_pages: paginated_movies.total_pages,
           current_page: paginated_movies.current_page
         }
+      end
+
+      def generate_cloudinary_url(blob)
+        blob.service.url(
+          blob.key,
+          disposition: "inline",
+          filename: blob.filename,
+          content_type: blob.content_type
+        )
       end
 
       def authorize_admin

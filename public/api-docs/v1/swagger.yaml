@@ -164,17 +164,9 @@ paths:
                         poster_url:
                           type: string
                           nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
                         banner_url:
                           type: string
                           nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
                       required:
                       - id
                       - title
@@ -187,8 +179,6 @@ paths:
                       - streaming_platform
                       - description
                       - plan
-                      - created_at
-                      - updated_at
                   total_pages:
                     type: integer
                   current_page:
@@ -203,106 +193,16 @@ paths:
       - Movies
       security:
       - Bearer: []
-      description: Creates a movie with poster and banner image uploads. Triggers FCM notification to premium users if the movie is premium.
+      description: Creates a movie with poster and banner image uploads. Triggers
+        FCM notification to premium users if the movie is premium.
       parameters: []
       responses:
         '201':
           description: Movie created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  movie:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      title:
-                        type: string
-                      genre:
-                        type: string
-                      release_year:
-                        type: integer
-                      rating:
-                        type: number
-                        format: float
-                      director:
-                        type: string
-                      duration:
-                        type: integer
-                      main_lead:
-                        type: string
-                      streaming_platform:
-                        type: string
-                        enum:
-                        - Netflix
-                        - Amazon Prime
-                        - Disney+
-                      description:
-                        type: string
-                      plan:
-                        type: string
-                        enum:
-                        - basic
-                        - premium
-                      poster_url:
-                        type: string
-                        nullable: true
-                        example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
-                      banner_url:
-                        type: string
-                        nullable: true
-                        example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
-                    required:
-                    - id
-                    - title
-                    - genre
-                    - release_year
-                    - rating
-                    - director
-                    - duration
-                    - main_lead
-                    - streaming_platform
-                    - description
-                    - plan
-                    - created_at
-                    - updated_at
-                required:
-                - message
-                - movie
         '422':
           description: Unprocessable Entity
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-                required:
-                - errors
         '403':
           description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                required:
-                - error
       requestBody:
         content:
           multipart/form-data:
@@ -426,17 +326,9 @@ paths:
                   poster_url:
                     type: string
                     nullable: true
-                    example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
                   banner_url:
                     type: string
                     nullable: true
-                    example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
-                  created_at:
-                    type: string
-                    format: date-time
-                  updated_at:
-                    type: string
-                    format: date-time
                 required:
                 - id
                 - title
@@ -449,8 +341,6 @@ paths:
                 - streaming_platform
                 - description
                 - plan
-                - created_at
-                - updated_at
         '404':
           description: Movie not found
           content:
@@ -466,7 +356,8 @@ paths:
       - Movies
       security:
       - Bearer: []
-      description: Updates a movie. All fields are optional. Only provided fields are updated. Poster and banner images are preserved if not provided.
+      description: Updates a movie. All fields are optional. Only provided fields
+        are updated. Poster and banner images are preserved if not provided.
       parameters:
       - name: id
         in: path
@@ -554,7 +445,8 @@ paths:
         - comedy
         - romance
         - sci-fi
-        description: "Genre must be one of: action, horror, comedy, romance, sci-fi:\n * `action` \n * `horror` \n * `comedy` \n * `romance` \n * `sci-fi` \n "
+        description: "Genre must be one of: action, horror, comedy, romance, sci-fi:\n
+          * `action` \n * `horror` \n * `comedy` \n * `romance` \n * `sci-fi` \n "
         schema:
           type: string
       - name: page
@@ -609,17 +501,9 @@ paths:
                         poster_url:
                           type: string
                           nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
                         banner_url:
                           type: string
                           nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
                       required:
                       - id
                       - title
@@ -632,8 +516,6 @@ paths:
                       - streaming_platform
                       - description
                       - plan
-                      - created_at
-                      - updated_at
                   total_pages:
                     type: integer
                   current_page:
@@ -653,10 +535,40 @@ paths:
       responses:
         '200':
           description: Subscription session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  url:
+                    type: string
+                required:
+                - session_id
+                - url
         '400':
           description: Invalid plan type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
           description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
       requestBody:
         content:
           application/json:
@@ -705,7 +617,6 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Subscription not found
                 required:
                 - error
   "/api/v1/subscriptions/status":

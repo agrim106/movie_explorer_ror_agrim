@@ -11,15 +11,15 @@ module Api
 
         price_id = case plan_type
                    when '1_day'
-                     'price_1RM3MPPwmKg08vVsB1ub3R60' # Replace with your actual Stripe price ID
+                     'price_1RNtmdHD5THXbmMicFTjGd9S' 
                    when '7_days'
-                     'price_1RM3NlPwmKg08vVshuxW8mRT' # Replace with your actual Stripe price ID
+                     'price_1RNtneHD5THXbmMikzJtPoIx' 
                    when '1_month'
-                     'price_1RM3OkPwmKg08vVs1Vk2DSu8' # Replace with your actual Stripe price ID
+                     'price_1RNtoTHD5THXbmMiHn35ft0R' 
                    end
 
         session = Stripe::Checkout::Session.create(
-          customer: subscription.stripe_customer_id,
+          customer: subscription&.stripe_customer_id,
           payment_method_types: ['card'],
           line_items: [{ price: price_id, quantity: 1 }],
           mode: 'payment',
@@ -35,28 +35,36 @@ module Api
       end
 
       def success
-        session = Stripe::Checkout::Session.retrieve(params[:session_id])
-        subscription = Subscription.find_by(stripe_customer_id: session.customer)
+        return render json: { error: 'Session ID is required' }, status: :bad_request unless params[:session_id]
 
-        if subscription
-          plan_type = session.metadata.plan_type
-          expires_at = case plan_type
-                       when '1_day'
-                         1.day.from_now
-                       when '7_days'
-                         7.days.from_now
-                       when '1_month'
-                         1.month.from_now
-                       end
-          subscription.update(
-            stripe_subscription_id: session.subscription,
-            plan_type: 'premium',
-            status: 'active',
-            expires_at: expires_at
-          )
-          render json: { message: 'Subscription updated successfully' }, status: :ok
-        else
+        begin
+          session = Stripe::Checkout::Session.retrieve(params[:session_id])
+          subscription = Subscription.find_by(stripe_customer_id: session.customer)
+
+          if subscription
+            plan_type = session.metadata.plan_type
+            expires_at = case plan_type
+                         when '1_day'
+                           1.day.from_now
+                         when '7_days'
+                           7.days.from_now
+                         when '1_month'
+                           1.month.from_now
+                         end
+            subscription.update(
+              stripe_subscription_id: session.subscription,
+              plan_type: 'premium',
+              status: 'active',
+              expires_at: expires_at
+            )
+            render json: { message: 'Subscription updated successfully' }, status: :ok
+          else
+            render json: { error: 'Subscription not found' }, status: :not_found
+          end
+        rescue Stripe::InvalidRequestError
           render json: { error: 'Subscription not found' }, status: :not_found
+        rescue Stripe::StripeError => e
+          render json: { error: e.message }, status: :bad_request
         end
       end
 
@@ -68,16 +76,15 @@ module Api
         subscription = current_user.subscription
 
         if subscription.nil?
-          render json: { error: 'No active subscription found' }, status: :not_found
+          render json: { subscription: nil }, status: :ok
           return
         end
 
         if subscription.plan_type == 'premium' && subscription.expires_at.present? && subscription.expires_at < Time.current
           subscription.update(plan_type: 'basic', status: 'active', expires_at: nil)
-          render json: { plan_type: 'basic', message: 'Your subscription has expired. Downgrading to basic plan.' }, status: :ok
-        else
-          render json: { plan_type: subscription.plan_type }, status: :ok
         end
+
+        render json: { subscription: subscription.as_json }, status: :ok
       end
 
       def index

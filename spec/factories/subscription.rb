@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :subscription do
-    user
+    user { create(:user) }
     plan_type { 'basic' }
     status { 'active' }
     stripe_customer_id { nil }
