@@ -22,19 +22,19 @@ module Api
       end
 
       def create
-        result = Movie.create_movie(movie_params)
-        if result[:success]
-          movie = result[:movie]
-          if movie.premium?
-            premium_users = User.joins(:subscription).where(subscriptions: { premium: true })
-            firebase = FirebaseService.new
-            firebase.send_notification_to_users(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
-          end
-          render json: { message: 'Movie added successfully', movie: movie.as_json(methods: :plan) }, status: :created
-        else
-          render json: { errors: result[:errors] }, status: :unprocessable_entity
-        end
-      end
+  result = Movie.create_movie(movie_params)
+  if result[:success]
+    movie = result[:movie]
+    if movie.premium?
+      premium_users = User.joins(:subscription).where(subscriptions: { plan_type: 'premium' })
+      firebase = FirebaseService.new
+      firebase.send_notification_to_users(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
+    end
+    render json: { message: 'Movie added successfully', movie: movie.as_json(methods: :plan) }, status: :created
+  else
+    render json: { errors: result[:errors] }, status: :unprocessable_entity
+  end
+end
 
       def update
         result = @movie.update_movie(movie_params)

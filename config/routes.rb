@@ -3,13 +3,9 @@ Rails.application.routes.draw do
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
 
-  # Mount Rswag UI at /api-docs (for UI interface)
   mount Rswag::Ui::Engine => '/api-docs'
-
-  # Mount Rswag API at a simpler path (for API definition)
   mount Rswag::Api::Engine => '/api-docs'
 
-  # API Namespace
   namespace :api do
     namespace :v1 do
       post '/admin/sign_in', to: 'admin_users#sign_in'
@@ -22,23 +18,25 @@ Rails.application.routes.draw do
           put 'me', action: :update
           post 'update_device_token', action: :update_device_token
           patch 'update_notification_preference', action: :update_notification_preference
-          patch 'update_preference', action: :update_preference # New route
+          patch 'update_preference', action: :update_preference
           post 'send_test_notification', action: :send_test_notification
         end
 
         resource :subscription, only: [:update], controller: 'subscriptions/admin'
       end
 
-      # Routes for MoviesController
       resources :movies, only: [:index, :show, :create, :update, :destroy], constraints: { id: /\d+/ }
       get 'movies/:genre', to: 'movies#index_by_genre', constraints: { genre: /[^0-9]+/ }
 
-      # Routes for SubscriptionsController
-      resources :subscriptions, only: [:create, :update, :destroy] do
-        post 'checkout', on: :collection, action: :create_checkout_session
+      # Subscription routes
+      resources :subscriptions, only: [:index] do
+        collection do
+          post '/', action: :create
+          get 'success', action: :success
+          get 'status', action: :status
+        end
       end
 
-      # Stripe Webhook Route
       post 'stripe/webhook', to: 'stripe#webhook'
     end
   end

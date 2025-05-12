@@ -1,11 +1,29 @@
 class Subscription < ApplicationRecord
   belongs_to :user
 
-  validates :start_date, presence: true
-  validates :premium, inclusion: { in: [true, false] }
-  validates :active, inclusion: { in: [true, false] }
+  PLAN_TYPES = %w[basic premium].freeze
+  STATUSES = %w[active inactive cancelled].freeze
+
+  validates :plan_type, inclusion: { in: PLAN_TYPES }
+  validates :status, inclusion: { in: STATUSES }
+
+  def basic?
+    plan_type == 'basic'
+  end
+
+  def premium?
+    plan_type == 'premium'
+  end
 
   def active?
-    self.active == true && (end_date.nil? || end_date > Time.current)
+    status == 'active' && (expires_at.nil? || expires_at > Time.current)
+  end
+
+  def self.ransackable_attributes(auth_object = nil)
+    %w[id user_id plan_type status created_at updated_at stripe_customer_id stripe_subscription_id expires_at]
+  end
+
+  def self.ransackable_associations(auth_object = nil)
+    %w[user]
   end
 end
