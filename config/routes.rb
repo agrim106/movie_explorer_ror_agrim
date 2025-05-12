@@ -22,6 +22,8 @@ Rails.application.routes.draw do
           put 'me', action: :update
           post 'update_device_token', action: :update_device_token
           patch 'update_notification_preference', action: :update_notification_preference
+          patch 'update_preference', action: :update_preference # New route
+          post 'send_test_notification', action: :send_test_notification
         end
 
         resource :subscription, only: [:update], controller: 'subscriptions/admin'

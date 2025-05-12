@@ -2,7 +2,7 @@ module Api
   module V1
     class UsersController < ApplicationController
       skip_before_action :authenticate_user!, only: [:create, :sign_in]
-      before_action :authenticate_user, only: [:index, :show, :update, :destroy, :update_role, :sign_out, :update_device_token, :update_notification_preference]
+      before_action :authenticate_user, only: [:index, :show, :update, :destroy, :update_role, :sign_out, :update_device_token, :update_notification_preference, :send_test_notification, :update_preference]
       before_action :set_user, only: [:show, :update, :destroy, :update_role]
       before_action :authorize_admin, only: [:index, :destroy, :update_role]
       before_action :authorize_self_or_admin, only: [:show, :update]
@@ -85,6 +85,43 @@ module Api
           render json: { message: 'Notification preference updated successfully' }, status: :ok
         else
           render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      def update_preference
+        @user = current_user
+        update_params = { device_token: params[:device_token], notification_enabled: params[:notification_enabled] }
+
+        # Remove nil values to avoid overwriting with nil
+        update_params.reject! { |_, v| v.nil? }
+
+        if update_params.empty?
+          render json: { error: 'No valid parameters provided' }, status: :unprocessable_entity
+          return
+        end
+
+        if @user.update(update_params)
+          render json: { message: 'Preferences updated successfully', user: { device_token: @user.device_token, notification_enabled: @user.notification_enabled } }, status: :ok
+        else
+          render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
+        end
+      end
+
+      def send_test_notification
+        @user = current_user
+        unless @user.notification_enabled && @user.device_token.present?
+          render json: { error: 'Notifications are disabled or device token is missing' }, status: :unprocessable_entity
+          return
+        end
+
+        firebase = FirebaseService.new
+        title = params[:title] || "Test Notification"
+        body = params[:body] || "This is a test notification from Movie Explorer!"
+
+        if firebase.send_notification_to_users([@user], title, body)
+          render json: { message: 'Test notification sent successfully' }, status: :ok
+        else
+          render json: { error: 'Failed to send test notification' }, status: :unprocessable_entity
         end
       end
 

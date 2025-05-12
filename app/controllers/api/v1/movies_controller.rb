@@ -27,7 +27,8 @@ module Api
           movie = result[:movie]
           if movie.premium?
             premium_users = User.joins(:subscription).where(subscriptions: { premium: true })
-            FcmNotificationService.send_notification(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
+            firebase = FirebaseService.new
+            firebase.send_notification_to_users(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
           end
           render json: { message: 'Movie added successfully', movie: movie.as_json(methods: :plan) }, status: :created
         else

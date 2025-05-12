@@ -37,6 +37,8 @@ class FirebaseService
   end
 
   def send_notification(device_token, title, body)
+    return false unless device_token.present?
+
     # Construct the FCM message payload
     message = {
       message: {
@@ -44,6 +46,11 @@ class FirebaseService
         notification: {
           title: title,
           body: body
+        },
+        data: {
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
+          id: "1",
+          status: "done"
         }
       }
     }
@@ -60,15 +67,40 @@ class FirebaseService
 
     # Handle the response
     if response.success?
-      Rails.logger.info("Notification sent successfully: #{response.body}")
+      Rails.logger.info("Notification sent successfully to token #{device_token}: #{response.body}")
       true
     else
-      Rails.logger.error("Failed to send notification: #{response.code} - #{response.body}")
+      Rails.logger.error("Failed to send notification to token #{device_token}: #{response.code} - #{response.body}")
       false
     end
   rescue StandardError => e
-    Rails.logger.error("Error sending notification: #{e.message}")
+    Rails.logger.error("Error sending notification to token #{device_token}: #{e.message}")
     false
+  end
+
+  def send_notification_to_users(users, title, body)
+    return false unless users.present?
+
+    # Filter users who have notifications enabled and a device token
+    eligible_users = users.select { |user| user.notification_enabled && user.device_token.present? }
+    return false unless eligible_users.present?
+
+    tokens = eligible_users.map(&:device_token)
+    Rails.logger.info("Sending notifications to #{tokens.count} eligible users for: #{title}")
+
+    # Send notifications to each token
+    successes = tokens.map do |token|
+      send_notification(token, title, body)
+    end
+
+    # Log the overall result
+    if successes.any? { |success| success }
+      Rails.logger.info("Successfully sent notifications to #{successes.count(true)} out of #{tokens.count} users")
+      true
+    else
+      Rails.logger.warn("Failed to send notifications to any users")
+      false
+    end
   end
 
   private
