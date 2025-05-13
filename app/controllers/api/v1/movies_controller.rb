@@ -7,13 +7,24 @@ module Api
 
       def index
         movies = Movie.all
-        render json: movies_paginated(movies)
+        render json: movies_paginated(movies), status: :ok
       end
 
       def index_by_genre
-        genre = params[:genre]
-        movies = Movie.where(genre: genre)
-        render json: movies_paginated(movies)
+        genre = params[:genre]&.strip
+        unless genre.present?
+          render json: { error: "Genre parameter is required" }, status: :bad_request
+          return
+        end
+
+        # Case-insensitive search for genre
+        movies = Movie.where("LOWER(genre) = ?", genre.downcase)
+        if movies.empty?
+          render json: { error: "No movies found for genre: #{genre}" }, status: :not_found
+          return
+        end
+
+        render json: movies_paginated(movies), status: :ok
       end
 
       def show
@@ -21,7 +32,7 @@ module Api
         render json: @movie.as_json(methods: :plan).merge(
           poster_url: @movie.poster.attached? ? generate_cloudinary_url(@movie.poster.blob) : nil,
           banner_url: @movie.banner.attached? ? generate_cloudinary_url(@movie.banner.blob) : nil
-        )
+        ), status: :ok
       end
 
       def create
@@ -133,7 +144,8 @@ module Api
       end
 
       def authorize_admin
-        unless current_user&.supervisor?
+        user = current_user
+        unless user&.supervisor?
           render json: { error: 'Forbidden: Supervisor access required' }, status: :forbidden
         end
       end

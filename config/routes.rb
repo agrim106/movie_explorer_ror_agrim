@@ -31,11 +31,12 @@ Rails.application.routes.draw do
 
       # Movie Routes (Explicitly Defined)
       get '/movies', to: 'movies#index'           # List all movies
-      get '/movies/:id', to: 'movies#show'        # Fetch a specific movie (ID must be numeric)
+      # Place the genre route *before* the ID route to ensure proper matching
+      get '/movies/:genre', to: 'movies#index_by_genre', constraints: { genre: /[^0-9]+/ }  # Fetch movies by genre (e.g., /api/v1/movies/action)
+      get '/movies/:id', to: 'movies#show', constraints: { id: /\d+/ }  # Fetch a specific movie (ID must be numeric, e.g., /api/v1/movies/1)
       post '/movies', to: 'movies#create'         # Create a new movie
-      put '/movies/:id', to: 'movies#update'      # Update a movie
-      delete '/movies/:id', to: 'movies#destroy'  # Delete a movie
-      get '/movies/:genre', to: 'movies#index_by_genre', constraints: { genre: /[^0-9]+/ }  # Fetch movies by genre
+      put '/movies/:id', to: 'movies#update', constraints: { id: /\d+/ }  # Update a movie
+      delete '/movies/:id', to: 'movies#destroy', constraints: { id: /\d+/ }  # Delete a movie
 
       # Subscription Routes (Explicitly Defined)
       get '/subscriptions', to: 'subscriptions#index'  # List subscriptions
