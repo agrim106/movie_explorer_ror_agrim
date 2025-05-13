@@ -409,10 +409,52 @@ paths:
       tags:
       - Movies
       parameters:
+      - name: title
+        in: query
+        required: false
+        description: Exact match for movie title (case-insensitive)
+        schema:
+          type: string
+      - name: search
+        in: query
+        required: false
+        description: Partial match for movie title (case-insensitive)
+        schema:
+          type: string
+      - name: genre
+        in: query
+        required: false
+        description: Filter by genre (case-insensitive)
+        schema:
+          type: string
+          enum:
+          - action
+          - horror
+          - comedy
+          - romance
+          - sci-fi
+      - name: release_year
+        in: query
+        required: false
+        description: Filter by release year
+        schema:
+          type: integer
+      - name: rating
+        in: query
+        required: false
+        description: Filter by rating (case-insensitive)
+        schema:
+          type: string
       - name: page
         in: query
         required: false
-        description: Page number
+        description: Page number for pagination
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        description: Number of movies per page (max 50)
         schema:
           type: integer
       responses:
@@ -437,12 +479,11 @@ paths:
                         release_year:
                           type: integer
                         rating:
-                          type: number
-                          format: float
+                          type: string
                         director:
                           type: string
                         duration:
-                          type: integer
+                          type: string
                         main_lead:
                           type: string
                         streaming_platform:
@@ -494,6 +535,17 @@ paths:
                 - movies
                 - total_pages
                 - current_page
+        '404':
+          description: No movies found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
     post:
       summary: Create a movie
       tags:
@@ -524,12 +576,11 @@ paths:
                       release_year:
                         type: integer
                       rating:
-                        type: number
-                        format: float
+                        type: string
                       director:
                         type: string
                       duration:
-                        type: integer
+                        type: string
                       main_lead:
                         type: string
                       streaming_platform:
@@ -622,15 +673,14 @@ paths:
                   type: integer
                   description: 1900 to current year
                 movie[rating]:
-                  type: number
-                  format: float
-                  description: 0.0 to 10.0
+                  type: string
+                  description: Movie rating (e.g., PG, PG-13, R)
                 movie[director]:
                   type: string
                   description: Director name, max 255 chars
                 movie[duration]:
-                  type: integer
-                  description: Duration in minutes, >= 30
+                  type: string
+                  description: Duration (e.g., "2h 30m")
                 movie[main_lead]:
                   type: string
                   description: Main actor, max 255 chars
@@ -671,10 +721,13 @@ paths:
               additionalProperties: false
         required: true
   "/api/v1/movies/{id}":
-    get:
-      summary: Retrieve a movie
+    patch:
+      summary: Update a movie
       tags:
       - Movies
+      security:
+      - Bearer: []
+      description: Updates a movie. All fields are optional. Only provided fields are updated. Poster and banner images are preserved if not provided.
       parameters:
       - name: id
         in: path
@@ -684,7 +737,7 @@ paths:
           type: integer
       responses:
         '200':
-          description: Movie retrieved successfully
+          description: Movie updated successfully
           content:
             application/json:
               schema:
@@ -699,12 +752,11 @@ paths:
                   release_year:
                     type: integer
                   rating:
-                    type: number
-                    format: float
+                    type: string
                   director:
                     type: string
                   duration:
-                    type: integer
+                    type: string
                   main_lead:
                     type: string
                   streaming_platform:
@@ -748,6 +800,30 @@ paths:
                 - plan
                 - created_at
                 - updated_at
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - errors
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: Movie not found
           content:
@@ -757,29 +833,8 @@ paths:
                 properties:
                   error:
                     type: string
-    patch:
-      summary: Update a movie
-      tags:
-      - Movies
-      security:
-      - Bearer: []
-      description: Updates a movie. All fields are optional. Only provided fields are updated. Poster and banner images are preserved if not provided.
-      parameters:
-      - name: id
-        in: path
-        required: true
-        example: 7
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: Movie updated successfully
-        '422':
-          description: Invalid release year
-        '403':
-          description: Forbidden
-        '404':
-          description: Movie not found
+                required:
+                - error
       requestBody:
         content:
           multipart/form-data:
@@ -802,15 +857,14 @@ paths:
                   type: integer
                   description: 1900 to current year
                 movie[rating]:
-                  type: number
-                  format: float
-                  description: 0.0 to 10.0
+                  type: string
+                  description: Movie rating (e.g., PG, PG-13, R)
                 movie[director]:
                   type: string
                   description: Director name, max 255 chars
                 movie[duration]:
-                  type: integer
-                  description: Duration in minutes, >= 30
+                  type: string
+                  description: Duration (e.g., "2h 30m")
                 movie[main_lead]:
                   type: string
                   description: Main actor, max 255 chars
@@ -836,109 +890,44 @@ paths:
                   format: binary
                   description: Banner image file (JPEG/PNG), preserved if not provided
               additionalProperties: false
-  "/api/v1/movies/{genre}":
-    get:
-      summary: List movies by genre
+    delete:
+      summary: Delete a movie
       tags:
       - Movies
+      security:
+      - Bearer: []
       parameters:
-      - name: genre
+      - name: id
         in: path
         required: true
-        enum:
-        - action
-        - horror
-        - comedy
-        - romance
-        - sci-fi
-        description: "Genre must be one of: action, horror, comedy, romance, sci-fi:\n * `action` \n * `horror` \n * `comedy` \n * `romance` \n * `sci-fi` \n "
-        schema:
-          type: string
-      - name: page
-        in: query
-        required: false
-        description: Page number
+        example: 7
         schema:
           type: integer
       responses:
-        '200':
-          description: Movies retrieved successfully
+        '204':
+          description: Movie deleted successfully
+        '403':
+          description: Forbidden
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  movies:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                        title:
-                          type: string
-                        genre:
-                          type: string
-                        release_year:
-                          type: integer
-                        rating:
-                          type: number
-                          format: float
-                        director:
-                          type: string
-                        duration:
-                          type: integer
-                        main_lead:
-                          type: string
-                        streaming_platform:
-                          type: string
-                          enum:
-                          - Netflix
-                          - Amazon Prime
-                          - Disney+
-                        description:
-                          type: string
-                        plan:
-                          type: string
-                          enum:
-                          - basic
-                          - premium
-                        poster_url:
-                          type: string
-                          nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
-                        banner_url:
-                          type: string
-                          nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
-                      required:
-                      - id
-                      - title
-                      - genre
-                      - release_year
-                      - rating
-                      - director
-                      - duration
-                      - main_lead
-                      - streaming_platform
-                      - description
-                      - plan
-                      - created_at
-                      - updated_at
-                  total_pages:
-                    type: integer
-                  current_page:
-                    type: integer
+                  error:
+                    type: string
                 required:
-                - movies
-                - total_pages
-                - current_page
+                - error
+        '404':
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
   "/api/v1/subscriptions":
     post:
       summary: Create a subscription

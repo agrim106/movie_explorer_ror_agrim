@@ -29,14 +29,8 @@ Rails.application.routes.draw do
       # User Subscription Route
       put '/users/:user_id/subscription', to: 'subscriptions/admin#update'
 
-      # Movie Routes (Explicitly Defined)
-      get '/movies', to: 'movies#index'           # List all movies
-      # Place the genre route *before* the ID route to ensure proper matching
-      get '/movies/:genre', to: 'movies#index_by_genre', constraints: { genre: /[^0-9]+/ }  # Fetch movies by genre (e.g., /api/v1/movies/action)
-      get '/movies/:id', to: 'movies#show', constraints: { id: /\d+/ }  # Fetch a specific movie (ID must be numeric, e.g., /api/v1/movies/1)
-      post '/movies', to: 'movies#create'         # Create a new movie
-      put '/movies/:id', to: 'movies#update', constraints: { id: /\d+/ }  # Update a movie
-      delete '/movies/:id', to: 'movies#destroy', constraints: { id: /\d+/ }  # Delete a movie
+      # Movie Routes (Using resources, excluding show)
+      resources :movies, only: [:index, :create, :update, :destroy]
 
       # Subscription Routes (Explicitly Defined)
       get '/subscriptions', to: 'subscriptions#index'  # List subscriptions
@@ -48,7 +42,4 @@ Rails.application.routes.draw do
       post 'stripe/webhook', to: 'stripe#webhook'
     end
   end
-
-  # Root Route
-  root to: 'api/v1/welcome#index'
 end

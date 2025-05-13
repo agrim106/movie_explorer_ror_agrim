@@ -1,38 +1,49 @@
 module Api
   module V1
     class MoviesController < ApplicationController
-      skip_before_action :authenticate_user!, only: [:index, :index_by_genre, :show]
-      before_action :set_movie, only: [:show, :update, :destroy]
+      skip_before_action :authenticate_user!, only: [:index]
+      before_action :set_movie, only: [:update, :destroy] # Removed :show
       before_action :authorize_admin, only: [:create, :update, :destroy]
 
       def index
         movies = Movie.all
-        render json: movies_paginated(movies), status: :ok
-      end
 
-      def index_by_genre
-        genre = params[:genre]&.strip
-        unless genre.present?
-          render json: { error: "Genre parameter is required" }, status: :bad_request
-          return
+        # Apply filters
+        if params[:genre].present?
+          genre = params[:genre].strip.downcase
+          movies = movies.where("LOWER(genre) = ?", genre)
         end
 
-        # Case-insensitive search for genre
-        movies = Movie.where("LOWER(genre) = ?", genre.downcase)
+        if params[:release_year].present?
+          release_year = params[:release_year].to_i
+          movies = movies.where(release_year: release_year) if release_year > 0
+        end
+
+        if params[:rating].present?
+          rating = params[:rating].strip.downcase
+          movies = movies.where("LOWER(rating) = ?", rating)
+        end
+
+        # Search by exact title (case-insensitive)
+        if params[:title].present?
+          title = "%#{params[:title].strip}%"
+          movies = movies.where("title ILIKE ?", title)
+        end
+
+        # Apply search (partial match on title, case-insensitive)
+        if params[:search].present?
+          search_term = "%#{params[:search].strip.downcase}%"
+          movies = movies.where("LOWER(title) LIKE ?", search_term)
+        end
+
+        # If no movies match the filters, return a 404
         if movies.empty?
-          render json: { error: "No movies found for genre: #{genre}" }, status: :not_found
+          render json: { error: "No movies found matching the criteria" }, status: :not_found
           return
         end
 
+        # Apply pagination
         render json: movies_paginated(movies), status: :ok
-      end
-
-      def show
-        Rails.logger.info "Show action called for movie ID: #{params[:id]}"
-        render json: @movie.as_json(methods: :plan).merge(
-          poster_url: @movie.poster.attached? ? generate_cloudinary_url(@movie.poster.blob) : nil,
-          banner_url: @movie.banner.attached? ? generate_cloudinary_url(@movie.banner.blob) : nil
-        ), status: :ok
       end
 
       def create
@@ -121,7 +132,9 @@ module Api
       end
 
       def movies_paginated(movies)
-        paginated_movies = movies.page(params[:page]).per(10)
+        per_page = (params[:per_page] || params[:perpage] || 10).to_i
+        per_page = [per_page, 50].min # Cap the per_page to a maximum of 50 to avoid overload
+        paginated_movies = movies.page(params[:page]).per(per_page)
         {
           movies: paginated_movies.map { |movie|
             movie.as_json(methods: :plan).merge(
