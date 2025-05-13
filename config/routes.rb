@@ -8,36 +8,46 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      # Admin and User Authentication Routes
       post '/admin/sign_in', to: 'admin_users#sign_in'
       post '/users/sign_in', to: 'users#sign_in'
       post '/users/sign_out', to: 'users#sign_out'
 
-      resources :users, only: [:index, :show, :create, :update, :destroy] do
-        collection do
-          get 'me', action: :show
-          put 'me', action: :update
-          post 'update_device_token', action: :update_device_token
-          patch 'update_notification_preference', action: :update_notification_preference
-          patch 'update_preference', action: :update_preference
-          post 'send_test_notification', action: :send_test_notification
-        end
+      # User Routes (Explicitly Defined)
+      get '/users', to: 'users#show'              # Fetch current user's info
+      get '/users/:id', to: 'users#show'          # Fetch a specific user by ID
+      post '/users', to: 'users#create'           # Create a new user
+      put '/users', to: 'users#update'            # Update current user
+      delete '/users/:id', to: 'users#destroy'    # Delete a user (admin only)
 
-        resource :subscription, only: [:update], controller: 'subscriptions/admin'
-      end
+      # User Collection Routes
+      post '/users/update_device_token', to: 'users#update_device_token'
+      patch '/users/update_notification_preference', to: 'users#update_notification_preference'
+      patch '/users/update_preference', to: 'users#update_preference'
+      post '/users/send_test_notification', to: 'users#send_test_notification'
 
-      resources :movies, only: [:index, :show, :create, :update, :destroy], constraints: { id: /\d+/ }
-      get 'movies/:genre', to: 'movies#index_by_genre', constraints: { genre: /[^0-9]+/ }
+      # User Subscription Route
+      put '/users/:user_id/subscription', to: 'subscriptions/admin#update'
 
-      # Subscription routes
-      resources :subscriptions, only: [:index] do
-        collection do
-          post '/', action: :create
-          get 'success', action: :success
-          get 'status', action: :status
-        end
-      end
+      # Movie Routes (Explicitly Defined)
+      get '/movies', to: 'movies#index'           # List all movies
+      get '/movies/:id', to: 'movies#show'        # Fetch a specific movie (ID must be numeric)
+      post '/movies', to: 'movies#create'         # Create a new movie
+      put '/movies/:id', to: 'movies#update'      # Update a movie
+      delete '/movies/:id', to: 'movies#destroy'  # Delete a movie
+      get '/movies/:genre', to: 'movies#index_by_genre', constraints: { genre: /[^0-9]+/ }  # Fetch movies by genre
 
+      # Subscription Routes (Explicitly Defined)
+      get '/subscriptions', to: 'subscriptions#index'  # List subscriptions
+      post '/subscriptions', to: 'subscriptions#create'  # Create a subscription
+      get '/subscriptions/success', to: 'subscriptions#success'  # Subscription success callback
+      get '/subscriptions/status', to: 'subscriptions#status'  # Check subscription status
+
+      # Stripe Webhook
       post 'stripe/webhook', to: 'stripe#webhook'
     end
   end
+
+  # Root Route
+  root to: 'api/v1/welcome#index'
 end

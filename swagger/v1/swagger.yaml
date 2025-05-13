@@ -6,13 +6,54 @@ info:
 paths:
   "/api/v1/users":
     post:
-      summary: User created
+      summary: Create a user
       tags:
       - Users
       parameters: []
       responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  first_name:
+                    type: string
+                  last_name:
+                    type: string
+                  mobile_number:
+                    type: string
+                  role:
+                    type: string
+                    enum:
+                    - user
+                    - supervisor
+                    - admin
+                required:
+                - id
+                - email
+                - first_name
+                - last_name
+                - mobile_number
+                - role
         '422':
-          description: returns a 422 response
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+                required:
+                - errors
       requestBody:
         content:
           application/json:
@@ -39,6 +80,140 @@ paths:
                   - email
                   - password
                   - mobile_number
+              required:
+              - user
+    get:
+      summary: Retrieve the current user
+      tags:
+      - Users
+      security:
+      - Bearer: []
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      mobile_number:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                        - user
+                        - supervisor
+                        - admin
+                    required:
+                    - id
+                    - email
+                    - first_name
+                    - last_name
+                    - mobile_number
+                    - role
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    put:
+      summary: Update the current user
+      tags:
+      - Users
+      security:
+      - Bearer: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    first_name:
+                      type: string
+                    last_name:
+                      type: string
+                    email:
+                      type: string
+                    password:
+                      type: string
+                    mobile_number:
+                      type: string
+                  required:
+                  - email
+              required:
+              - user
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      mobile_number:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                        - user
+                        - supervisor
+                        - admin
+                    required:
+                    - id
+                    - email
+                    - first_name
+                    - last_name
+                    - mobile_number
+                    - role
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
   "/api/v1/users/sign_in":
     post:
       summary: Sign in a user
@@ -106,6 +281,128 @@ paths:
                   - password
               required:
               - user
+  "/api/v1/users/sign_out":
+    post:
+      summary: Sign out a user
+      tags:
+      - Users
+      security:
+      - Bearer: []
+      responses:
+        '200':
+          description: User signed out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  "/api/v1/users/update_device_token":
+    post:
+      summary: Update device token
+      tags:
+      - Users
+      security:
+      - Bearer: []
+      parameters: []
+      responses:
+        '200':
+          description: Device token updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '422':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_token:
+                  type: string
+              required:
+              - device_token
+  "/api/v1/users/update_notification_preference":
+    patch:
+      summary: Update notification preference
+      tags:
+      - Users
+      security:
+      - Bearer: []
+      parameters: []
+      responses:
+        '200':
+          description: Notification preference updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '422':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notification_enabled:
+                  type: boolean
+              required:
+              - notification_enabled
   "/api/v1/movies":
     get:
       summary: List movies
@@ -760,283 +1057,6 @@ paths:
                     type: string
                 required:
                 - error
-  "/api/v1/users/sign_out":
-    post:
-      summary: Sign out a user
-      tags:
-      - Users
-      security:
-      - Bearer: []
-      responses:
-        '200':
-          description: User signed out successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-  "/api/v1/users/{id}":
-    get:
-      summary: Retrieve a user
-      tags:
-      - Users
-      security:
-      - Bearer: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: User retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  email:
-                    type: string
-                  first_name:
-                    type: string
-                  last_name:
-                    type: string
-                  mobile_number:
-                    type: string
-                  role:
-                    type: string
-                    enum:
-                    - user
-                    - supervisor
-                    - admin
-                required:
-                - id
-                - email
-                - first_name
-                - last_name
-                - mobile_number
-                - role
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-    patch:
-      summary: Update a user
-      tags:
-      - Users
-      security:
-      - Bearer: []
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  email:
-                    type: string
-                  first_name:
-                    type: string
-                  last_name:
-                    type: string
-                  mobile_number:
-                    type: string
-                  role:
-                    type: string
-                    enum:
-                    - user
-                    - supervisor
-                    - admin
-                required:
-                - id
-                - email
-                - first_name
-                - last_name
-                - mobile_number
-                - role
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        '422':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user:
-                  type: object
-                  properties:
-                    first_name:
-                      type: string
-                    last_name:
-                      type: string
-                    email:
-                      type: string
-                    mobile_number:
-                      type: string
-                    password:
-                      type: string
-              required:
-              - user
-  "/api/v1/users/update_device_token":
-    post:
-      summary: Update device token
-      tags:
-      - Users
-      security:
-      - Bearer: []
-      parameters: []
-      responses:
-        '200':
-          description: Device token updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        '422':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                device_token:
-                  type: string
-              required:
-              - device_token
-  "/api/v1/users/update_notification_preference":
-    patch:
-      summary: Update notification preference
-      tags:
-      - Users
-      security:
-      - Bearer: []
-      parameters: []
-      responses:
-        '200':
-          description: Notification preference updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        '422':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                notification_enabled:
-                  type: boolean
-              required:
-              - notification_enabled
 servers:
 - url: http://localhost:3000
   description: Local server
