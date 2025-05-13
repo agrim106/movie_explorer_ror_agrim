@@ -43,7 +43,7 @@ module Api
             user_id: current_user.id,
             plan_type: plan_type
           },
-          success_url: "#{ENV['BASE_URL'] || 'https://movie-explorer-ror-agrim.onrender.com'}/api/v1/subscriptions/success?session_id={CHECKOUT_SESSION_ID}",
+          success_url:"http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
           cancel_url: "#{ENV['BASE_URL'] || 'https://movie-explorer-ror-agrim.onrender.com'}/api/v1/subscriptions/cancel"
         )
 
