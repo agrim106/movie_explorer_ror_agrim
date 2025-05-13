@@ -30,7 +30,7 @@ Rails.application.routes.draw do
       put '/users/:user_id/subscription', to: 'subscriptions/admin#update'
 
       # Movie Routes (Using resources, excluding show)
-      resources :movies, only: [:index, :create, :update, :destroy]
+      resources :movies, only: [:index, :show, :create, :update, :destroy]
 
       # Subscription Routes (Explicitly Defined)
       get '/subscriptions', to: 'subscriptions#index'  # List subscriptions

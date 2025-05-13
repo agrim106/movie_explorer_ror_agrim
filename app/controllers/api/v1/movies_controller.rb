@@ -1,8 +1,8 @@
 module Api
   module V1
     class MoviesController < ApplicationController
-      skip_before_action :authenticate_user!, only: [:index]
-      before_action :set_movie, only: [:update, :destroy] # Removed :show
+      skip_before_action :authenticate_user!, only: [:index, :show]
+      before_action :set_movie, only: [:show, :update, :destroy] # Added :show
       before_action :authorize_admin, only: [:create, :update, :destroy]
 
       def index
@@ -44,6 +44,13 @@ module Api
 
         # Apply pagination
         render json: movies_paginated(movies), status: :ok
+      end
+
+      def show
+        render json: @movie.as_json(methods: :plan).merge(
+          poster_url: @movie.poster.attached? ? generate_cloudinary_url(@movie.poster.blob) : nil,
+          banner_url: @movie.banner.attached? ? generate_cloudinary_url(@movie.banner.blob) : nil
+        ), status: :ok
       end
 
       def create
