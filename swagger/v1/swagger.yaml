@@ -3,15 +3,17 @@ openapi: 3.0.1
 info:
   title: Movie Explorer API V1
   version: v1
+  description: API for managing users, movies, and subscriptions
 paths:
-  "/api/v1/users":
+  /api/v1/users:
     post:
       summary: Create a user
+      operationId: createUser
       tags:
-      - Users
+        - Users
       parameters: []
       responses:
-        '201':
+        "201":
           description: User created successfully
           content:
             application/json:
@@ -31,17 +33,17 @@ paths:
                   role:
                     type: string
                     enum:
-                    - user
-                    - supervisor
-                    - admin
+                      - user
+                      - supervisor
+                      - admin
                 required:
-                - id
-                - email
-                - first_name
-                - last_name
-                - mobile_number
-                - role
-        '422':
+                  - id
+                  - email
+                  - first_name
+                  - last_name
+                  - mobile_number
+                  - role
+        "422":
           description: Unprocessable Entity
           content:
             application/json:
@@ -53,7 +55,7 @@ paths:
                     items:
                       type: string
                 required:
-                - errors
+                  - errors
       requestBody:
         content:
           application/json:
@@ -75,153 +77,22 @@ paths:
                     mobile_number:
                       type: string
                   required:
-                  - first_name
-                  - last_name
-                  - email
-                  - password
-                  - mobile_number
-              required:
-              - user
-    get:
-      summary: Retrieve the current user
-      tags:
-      - Users
-      security:
-      - Bearer: []
-      responses:
-        '200':
-          description: User retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  user:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      email:
-                        type: string
-                      first_name:
-                        type: string
-                      last_name:
-                        type: string
-                      mobile_number:
-                        type: string
-                      role:
-                        type: string
-                        enum:
-                        - user
-                        - supervisor
-                        - admin
-                    required:
-                    - id
-                    - email
                     - first_name
                     - last_name
-                    - mobile_number
-                    - role
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-    put:
-      summary: Update the current user
-      tags:
-      - Users
-      security:
-      - Bearer: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user:
-                  type: object
-                  properties:
-                    first_name:
-                      type: string
-                    last_name:
-                      type: string
-                    email:
-                      type: string
-                    password:
-                      type: string
-                    mobile_number:
-                      type: string
-                  required:
-                  - email
-              required:
-              - user
-      responses:
-        '200':
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  user:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                      email:
-                        type: string
-                      first_name:
-                        type: string
-                      last_name:
-                        type: string
-                      mobile_number:
-                        type: string
-                      role:
-                        type: string
-                        enum:
-                        - user
-                        - supervisor
-                        - admin
-                    required:
-                    - id
                     - email
-                    - first_name
-                    - last_name
+                    - password
                     - mobile_number
-                    - role
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        '422':
-          description: Unprocessable Entity
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: string
-  "/api/v1/users/sign_in":
+              required:
+                - user
+  /api/v1/users/sign_in:
     post:
       summary: Sign in a user
+      operationId: signInUser
       tags:
-      - Users
+        - Users
       parameters: []
       responses:
-        '200':
+        "200":
           description: User signed in successfully
           content:
             application/json:
@@ -241,20 +112,20 @@ paths:
                   role:
                     type: string
                     enum:
-                    - user
-                    - supervisor
-                    - admin
+                      - user
+                      - supervisor
+                      - admin
                   token:
                     type: string
                 required:
-                - id
-                - email
-                - first_name
-                - last_name
-                - mobile_number
-                - role
-                - token
-        '401':
+                  - id
+                  - email
+                  - first_name
+                  - last_name
+                  - mobile_number
+                  - role
+                  - token
+        "401":
           description: Invalid email or password
           content:
             application/json:
@@ -277,19 +148,20 @@ paths:
                     password:
                       type: string
                   required:
-                  - email
-                  - password
+                    - email
+                    - password
               required:
-              - user
-  "/api/v1/users/sign_out":
+                - user
+  /api/v1/users/sign_out:
     post:
       summary: Sign out a user
+      operationId: signOutUser
       tags:
-      - Users
+        - Users
       security:
-      - Bearer: []
+        - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: User signed out successfully
           content:
             application/json:
@@ -298,7 +170,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -307,16 +179,56 @@ paths:
                 properties:
                   error:
                     type: string
-  "/api/v1/users/update_device_token":
+  /api/v1/current_user:
+    get:
+      summary: Fetch current user
+      operationId: fetchCurrentUser
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User details returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  first_name:
+                    type: string
+                  last_name:
+                    type: string
+                  email:
+                    type: string
+                  mobile_number:
+                    type: string
+                  role:
+                    type: string
+                    enum: [user, supervisor, admin]
+        "401":
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No token provided. Please sign in."
+  /api/v1/users/update_device_token:
     post:
       summary: Update device token
+      operationId: updateDeviceToken
       tags:
-      - Users
+        - Users
       security:
-      - Bearer: []
+        - BearerAuth: []
       parameters: []
       responses:
-        '200':
+        "200":
           description: Device token updated successfully
           content:
             application/json:
@@ -325,7 +237,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -334,7 +246,7 @@ paths:
                 properties:
                   error:
                     type: string
-        '422':
+        "422":
           description: Invalid request
           content:
             application/json:
@@ -354,17 +266,18 @@ paths:
                 device_token:
                   type: string
               required:
-              - device_token
-  "/api/v1/users/update_notification_preference":
+                - device_token
+  /api/v1/users/update_notification_preference:
     patch:
       summary: Update notification preference
+      operationId: updateNotificationPreference
       tags:
-      - Users
+        - Users
       security:
-      - Bearer: []
+        - BearerAuth: []
       parameters: []
       responses:
-        '200':
+        "200":
           description: Notification preference updated successfully
           content:
             application/json:
@@ -373,7 +286,7 @@ paths:
                 properties:
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -382,7 +295,7 @@ paths:
                 properties:
                   error:
                     type: string
-        '422':
+        "422":
           description: Invalid request
           content:
             application/json:
@@ -402,63 +315,59 @@ paths:
                 notification_enabled:
                   type: boolean
               required:
-              - notification_enabled
-  "/api/v1/movies":
+                - notification_enabled
+  /api/v1/movies:
     get:
       summary: List movies
+      operationId: listMovies
       tags:
-      - Movies
+        - Movies
       parameters:
-      - name: title
-        in: query
-        required: false
-        description: Exact match for movie title (case-insensitive)
-        schema:
-          type: string
-      - name: search
-        in: query
-        required: false
-        description: Partial match for movie title (case-insensitive)
-        schema:
-          type: string
-      - name: genre
-        in: query
-        required: false
-        description: Filter by genre (case-insensitive)
-        schema:
-          type: string
-          enum:
-          - action
-          - horror
-          - comedy
-          - romance
-          - sci-fi
-      - name: release_year
-        in: query
-        required: false
-        description: Filter by release year
-        schema:
-          type: integer
-      - name: rating
-        in: query
-        required: false
-        description: Filter by rating (case-insensitive)
-        schema:
-          type: string
-      - name: page
-        in: query
-        required: false
-        description: Page number for pagination
-        schema:
-          type: integer
-      - name: per_page
-        in: query
-        required: false
-        description: Number of movies per page (max 50)
-        schema:
-          type: integer
+        - name: page
+          in: query
+          required: false
+          description: Page number
+          schema:
+            type: integer
+        - name: perPage
+          in: query
+          required: false
+          description: Number of movies per page
+          schema:
+            type: integer
+        - name: title
+          in: query
+          required: false
+          description: Filter movies by title (partial match)
+          schema:
+            type: string
+        - name: genre
+          in: query
+          required: false
+          description: Filter movies by genre
+          schema:
+            type: string
+            enum:
+              - action
+              - horror
+              - comedy
+              - romance
+              - sci-fi
+        - name: release_year
+          in: query
+          required: false
+          description: Filter movies by release year
+          schema:
+            type: integer
+        - name: rating
+          in: query
+          required: false
+          description: Filter movies by rating (0.0 to 10.0)
+          schema:
+            type: number
+            format: float
       responses:
-        '200':
+        "200":
           description: Movies retrieved successfully
           content:
             application/json:
@@ -479,34 +388,33 @@ paths:
                         release_year:
                           type: integer
                         rating:
-                          type: string
+                          type: number
+                          format: float
                         director:
                           type: string
                         duration:
-                          type: string
+                          type: integer
                         main_lead:
                           type: string
                         streaming_platform:
                           type: string
                           enum:
-                          - Netflix
-                          - Amazon Prime
-                          - Disney+
+                            - Netflix
+                            - Amazon Prime
+                            - Disney+
                         description:
                           type: string
                         plan:
                           type: string
                           enum:
-                          - basic
-                          - premium
+                            - basic
+                            - premium
                         poster_url:
                           type: string
                           nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
                         banner_url:
                           type: string
                           nullable: true
-                          example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
                         created_at:
                           type: string
                           format: date-time
@@ -514,29 +422,40 @@ paths:
                           type: string
                           format: date-time
                       required:
-                      - id
-                      - title
-                      - genre
-                      - release_year
-                      - rating
-                      - director
-                      - duration
-                      - main_lead
-                      - streaming_platform
-                      - description
-                      - plan
-                      - created_at
-                      - updated_at
-                  total_pages:
-                    type: integer
-                  current_page:
-                    type: integer
+                        - id
+                        - title
+                        - genre
+                        - release_year
+                        - rating
+                        - director
+                        - duration
+                        - main_lead
+                        - streaming_platform
+                        - description
+                        - plan
+                        - created_at
+                        - updated_at
+                  pagination:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                      total_pages:
+                        type: integer
+                      total_count:
+                        type: integer
+                      per_page:
+                        type: integer
+                    required:
+                      - current_page
+                      - total_pages
+                      - total_count
+                      - per_page
                 required:
-                - movies
-                - total_pages
-                - current_page
-        '404':
-          description: No movies found
+                  - movies
+                  - pagination
+        "404":
+          description: No movies found matching the criteria
           content:
             application/json:
               schema:
@@ -544,18 +463,17 @@ paths:
                 properties:
                   error:
                     type: string
-                required:
-                - error
     post:
       summary: Create a movie
+      operationId: createMovie
       tags:
-      - Movies
+        - Movies
       security:
-      - Bearer: []
-      description: Creates a movie with poster and banner image uploads. Triggers FCM notification to premium users if the movie is premium.
+        - BearerAuth: []
+      description: Creates a movie with optional poster and banner image uploads
       parameters: []
       responses:
-        '201':
+        "201":
           description: Movie created successfully
           content:
             application/json:
@@ -576,34 +494,33 @@ paths:
                       release_year:
                         type: integer
                       rating:
-                        type: string
+                        type: number
+                        format: float
                       director:
                         type: string
                       duration:
-                        type: string
+                        type: integer
                       main_lead:
                         type: string
                       streaming_platform:
                         type: string
                         enum:
-                        - Netflix
-                        - Amazon Prime
-                        - Disney+
+                          - Netflix
+                          - Amazon Prime
+                          - Disney+
                       description:
                         type: string
                       plan:
                         type: string
                         enum:
-                        - basic
-                        - premium
+                          - basic
+                          - premium
                       poster_url:
                         type: string
                         nullable: true
-                        example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
                       banner_url:
                         type: string
                         nullable: true
-                        example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
                       created_at:
                         type: string
                         format: date-time
@@ -611,23 +528,23 @@ paths:
                         type: string
                         format: date-time
                     required:
-                    - id
-                    - title
-                    - genre
-                    - release_year
-                    - rating
-                    - director
-                    - duration
-                    - main_lead
-                    - streaming_platform
-                    - description
-                    - plan
-                    - created_at
-                    - updated_at
+                      - id
+                      - title
+                      - genre
+                      - release_year
+                      - rating
+                      - director
+                      - duration
+                      - main_lead
+                      - streaming_platform
+                      - description
+                      - plan
+                      - created_at
+                      - updated_at
                 required:
-                - message
-                - movie
-        '422':
+                  - message
+                  - movie
+        "422":
           description: Unprocessable Entity
           content:
             application/json:
@@ -639,8 +556,8 @@ paths:
                     items:
                       type: string
                 required:
-                - errors
-        '403':
+                  - errors
+        "403":
           description: Forbidden
           content:
             application/json:
@@ -650,8 +567,9 @@ paths:
                   error:
                     type: string
                 required:
-                - error
+                  - error
       requestBody:
+        required: true
         content:
           multipart/form-data:
             schema:
@@ -663,34 +581,35 @@ paths:
                 movie[genre]:
                   type: string
                   enum:
-                  - action
-                  - horror
-                  - comedy
-                  - romance
-                  - sci-fi
-                  description: 'Must be one of: action, horror, comedy, romance, sci-fi'
+                    - action
+                    - horror
+                    - comedy
+                    - romance
+                    - sci-fi
+                  description: Must be one of action, horror, comedy, romance, sci-fi
                 movie[release_year]:
                   type: integer
                   description: 1900 to current year
                 movie[rating]:
-                  type: string
-                  description: Movie rating (e.g., PG, PG-13, R)
+                  type: number
+                  format: float
+                  description: 0.0 to 10.0
                 movie[director]:
                   type: string
                   description: Director name, max 255 chars
                 movie[duration]:
-                  type: string
-                  description: Duration (e.g., "2h 30m")
+                  type: integer
+                  description: Duration in minutes, >= 30
                 movie[main_lead]:
                   type: string
                   description: Main actor, max 255 chars
                 movie[streaming_platform]:
                   type: string
                   enum:
-                  - Netflix
-                  - Amazon Prime
-                  - Disney+
-                  description: 'Must be one of: Netflix, Amazon Prime, Disney+'
+                    - Netflix
+                    - Amazon Prime
+                    - Disney+
+                  description: Must be one of Netflix, Amazon Prime, Disney+
                 movie[description]:
                   type: string
                   description: Max 1000 chars
@@ -700,43 +619,124 @@ paths:
                 movie[poster]:
                   type: string
                   format: binary
-                  description: Poster image file (JPEG/PNG)
+                  description: Poster image file (JPEG/PNG), optional
                 movie[banner]:
                   type: string
                   format: binary
-                  description: Banner image file (JPEG/PNG)
+                  description: Banner image file (JPEG/PNG), optional
               required:
-              - movie[title]
-              - movie[genre]
-              - movie[release_year]
-              - movie[rating]
-              - movie[director]
-              - movie[duration]
-              - movie[main_lead]
-              - movie[streaming_platform]
-              - movie[description]
-              - movie[premium]
-              - movie[poster]
-              - movie[banner]
+                - movie[title]
+                - movie[genre]
+                - movie[release_year]
+                - movie[rating]
+                - movie[director]
+                - movie[duration]
+                - movie[main_lead]
+                - movie[streaming_platform]
+                - movie[description]
+                - movie[premium]
               additionalProperties: false
-        required: true
-  "/api/v1/movies/{id}":
+  /api/v1/movies/{id}:
+    get:
+      summary: Retrieve a movie
+      operationId: retrieveMovie
+      tags:
+        - Movies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Movie retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  genre:
+                    type: string
+                  release_year:
+                    type: integer
+                  rating:
+                    type: number
+                    format: float
+                  director:
+                    type: string
+                  duration:
+                    type: integer
+                  main_lead:
+                    type: string
+                  streaming_platform:
+                    type: string
+                    enum:
+                      - Netflix
+                      - Amazon Prime
+                      - Disney+
+                  description:
+                    type: string
+                  plan:
+                    type: string
+                    enum:
+                      - basic
+                      - premium
+                  poster_url:
+                    type: string
+                    nullable: true
+                  banner_url:
+                    type: string
+                    nullable: true
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+                required:
+                  - id
+                  - title
+                  - genre
+                  - release_year
+                  - rating
+                  - director
+                  - duration
+                  - main_lead
+                  - streaming_platform
+                  - description
+                  - plan
+                  - created_at
+                  - updated_at
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
     patch:
       summary: Update a movie
+      operationId: updateMovie
       tags:
-      - Movies
+        - Movies
       security:
-      - Bearer: []
-      description: Updates a movie. All fields are optional. Only provided fields are updated. Poster and banner images are preserved if not provided.
+        - BearerAuth: []
+      description: Updates a movie. All fields are optional
       parameters:
-      - name: id
-        in: path
-        required: true
-        example: 7
-        schema:
-          type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
-        '200':
+        "200":
           description: Movie updated successfully
           content:
             application/json:
@@ -752,34 +752,33 @@ paths:
                   release_year:
                     type: integer
                   rating:
-                    type: string
+                    type: number
+                    format: float
                   director:
                     type: string
                   duration:
-                    type: string
+                    type: integer
                   main_lead:
                     type: string
                   streaming_platform:
                     type: string
                     enum:
-                    - Netflix
-                    - Amazon Prime
-                    - Disney+
+                      - Netflix
+                      - Amazon Prime
+                      - Disney+
                   description:
                     type: string
                   plan:
                     type: string
                     enum:
-                    - basic
-                    - premium
+                      - basic
+                      - premium
                   poster_url:
                     type: string
                     nullable: true
-                    example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonposter.jpg"
                   banner_url:
                     type: string
                     nullable: true
-                    example: "https://res.cloudinary.com/your_cloud_name/image/upload/v1234567890/napoleonBanner.jpg"
                   created_at:
                     type: string
                     format: date-time
@@ -787,21 +786,21 @@ paths:
                     type: string
                     format: date-time
                 required:
-                - id
-                - title
-                - genre
-                - release_year
-                - rating
-                - director
-                - duration
-                - main_lead
-                - streaming_platform
-                - description
-                - plan
-                - created_at
-                - updated_at
-        '422':
-          description: Unprocessable Entity
+                  - id
+                  - title
+                  - genre
+                  - release_year
+                  - rating
+                  - director
+                  - duration
+                  - main_lead
+                  - streaming_platform
+                  - description
+                  - plan
+                  - created_at
+                  - updated_at
+        "422":
+          description: Invalid release year
           content:
             application/json:
               schema:
@@ -811,9 +810,7 @@ paths:
                     type: array
                     items:
                       type: string
-                required:
-                - errors
-        '403':
+        "403":
           description: Forbidden
           content:
             application/json:
@@ -822,9 +819,7 @@ paths:
                 properties:
                   error:
                     type: string
-                required:
-                - error
-        '404':
+        "404":
           description: Movie not found
           content:
             application/json:
@@ -833,8 +828,6 @@ paths:
                 properties:
                   error:
                     type: string
-                required:
-                - error
       requestBody:
         content:
           multipart/form-data:
@@ -847,34 +840,35 @@ paths:
                 movie[genre]:
                   type: string
                   enum:
-                  - action
-                  - horror
-                  - comedy
-                  - romance
-                  - sci-fi
-                  description: 'Must be one of: action, horror, comedy, romance, sci-fi'
+                    - action
+                    - horror
+                    - comedy
+                    - romance
+                    - sci-fi
+                  description: Must be one of action, horror, comedy, romance, sci-fi
                 movie[release_year]:
                   type: integer
                   description: 1900 to current year
                 movie[rating]:
-                  type: string
-                  description: Movie rating (e.g., PG, PG-13, R)
+                  type: number
+                  format: float
+                  description: 0.0 to 10.0
                 movie[director]:
                   type: string
                   description: Director name, max 255 chars
                 movie[duration]:
-                  type: string
-                  description: Duration (e.g., "2h 30m")
+                  type: integer
+                  description: Duration in minutes, >= 30
                 movie[main_lead]:
                   type: string
                   description: Main actor, max 255 chars
                 movie[streaming_platform]:
                   type: string
                   enum:
-                  - Netflix
-                  - Amazon Prime
-                  - Disney+
-                  description: 'Must be one of: Netflix, Amazon Prime, Disney+'
+                    - Netflix
+                    - Amazon Prime
+                    - Disney+
+                  description: Must be one of Netflix, Amazon Prime, Disney+
                 movie[description]:
                   type: string
                   description: Max 1000 chars
@@ -892,21 +886,21 @@ paths:
               additionalProperties: false
     delete:
       summary: Delete a movie
+      operationId: deleteMovie
       tags:
-      - Movies
+        - Movies
       security:
-      - Bearer: []
+        - BearerAuth: []
       parameters:
-      - name: id
-        in: path
-        required: true
-        example: 7
-        schema:
-          type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
       responses:
-        '204':
+        "204":
           description: Movie deleted successfully
-        '403':
+        "403":
           description: Forbidden
           content:
             application/json:
@@ -915,9 +909,7 @@ paths:
                 properties:
                   error:
                     type: string
-                required:
-                - error
-        '404':
+        "404":
           description: Movie not found
           content:
             application/json:
@@ -926,23 +918,52 @@ paths:
                 properties:
                   error:
                     type: string
-                required:
-                - error
-  "/api/v1/subscriptions":
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /api/v1/subscriptions:
     post:
       summary: Create a subscription
+      operationId: createSubscription
       tags:
-      - Subscriptions
+        - Subscriptions
       security:
-      - Bearer: []
+        - BearerAuth: []
       parameters: []
       responses:
-        '200':
+        "200":
           description: Subscription session created successfully
-        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
           description: Invalid plan type
-        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
           description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
       requestBody:
         content:
           application/json:
@@ -952,26 +973,27 @@ paths:
                 plan_type:
                   type: string
                   enum:
-                  - 1_day
-                  - 7_days
-                  - 1_month
+                    - 1_day
+                    - 7_days
+                    - 1_month
                   description: The type of subscription plan to purchase
               required:
-              - plan_type
-  "/api/v1/subscriptions/success":
+                - plan_type
+  /api/v1/subscriptions/success:
     get:
       summary: Handle successful subscription payment
+      operationId: handleSubscriptionSuccess
       tags:
-      - Subscriptions
+        - Subscriptions
       parameters:
-      - name: session_id
-        in: query
-        required: true
-        schema:
-          type: string
-        description: Stripe checkout session ID
+        - name: session_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Stripe checkout session ID
       responses:
-        '200':
+        "200":
           description: Subscription updated successfully
           content:
             application/json:
@@ -981,8 +1003,8 @@ paths:
                   message:
                     type: string
                 required:
-                - message
-        '404':
+                  - message
+        "404":
           description: Subscription not found
           content:
             application/json:
@@ -991,18 +1013,18 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: Subscription not found
                 required:
-                - error
-  "/api/v1/subscriptions/status":
+                  - error
+  /api/v1/subscriptions/status:
     get:
       summary: Fetch current user's subscription
+      operationId: fetchSubscriptionStatus
       tags:
-      - Subscriptions
+        - Subscriptions
       security:
-      - Bearer: []
+        - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Subscription details returned
           content:
             application/json:
@@ -1034,8 +1056,8 @@ paths:
                         type: string
                         format: date-time
                 required:
-                - subscription
-        '401':
+                  - subscription
+        "401":
           description: Unauthorized access
           content:
             application/json:
@@ -1045,15 +1067,15 @@ paths:
                   error:
                     type: string
                 required:
-                - error
+                  - error
 servers:
-- url: http://localhost:3000
-  description: Local server
-- url: https://movie-explorer-ror-agrim.onrender.com
-  description: Production server
+  - url: http://localhost:3000
+    description: Local server
+  - url: https://movie-explorer-ror-agrim.onrender.com
+    description: Production server
 components:
   securitySchemes:
-    Bearer:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT

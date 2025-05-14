@@ -35,8 +35,8 @@ class Movie < ApplicationRecord
   validates :premium, inclusion: { in: [true, false] }, allow_nil: true, on: :update
 
   # Attachment Validations
-  validates :poster, attached: true, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }, on: :create
-  validates :banner, attached: true, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }, on: :create
+  validates :poster, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }, allow_blank: true, on: :create
+  validates :banner, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }, allow_blank: true, on: :create
   validates :poster, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }, allow_blank: true, on: :update
   validates :banner, content_type: ['image/png', 'image/jpg', 'image/jpeg'], size: { less_than: 5.megabytes }, allow_blank: true, on: :update
 

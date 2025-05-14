@@ -6,7 +6,6 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  # Override Devise's CSRF handling
   def handle_unverified_request
     if api_request?
       # Do nothing for API requests
@@ -23,7 +22,7 @@ class ApplicationController < ActionController::Base
 
   def authenticate_user!
     token = request.headers['Authorization']&.split(' ')&.last
-    return render json: { error: 'Unauthorized' }, status: :unauthorized unless token
+    return render json: { error: 'No token provided. Please sign in.' }, status: :unauthorized unless token
 
     begin
       payload = JWT.decode(token, ENV['JWT_SECRET'], true, algorithm: 'HS256').first
@@ -32,6 +31,10 @@ class ApplicationController < ActionController::Base
         @current_user = AdminUser.find(payload['user_id'])
       else
         @current_user = User.find(payload['user_id'])
+        if @current_user.token_blacklisted?(token)
+          render json: { error: 'Unauthorized: Token is blacklisted' }, status: :unauthorized
+          return
+        end
       end
     rescue JWT::DecodeError, ActiveRecord::RecordNotFound
       render json: { error: 'Unauthorized' }, status: :unauthorized
