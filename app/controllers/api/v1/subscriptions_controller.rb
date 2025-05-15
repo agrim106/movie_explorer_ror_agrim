@@ -43,8 +43,8 @@ module Api
             user_id: current_user.id,
             plan_type: plan_type
           },
-          success_url:"http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
-          cancel_url: "#{ENV['BASE_URL'] || 'https://movie-explorer-ror-agrim.onrender.com'}/api/v1/subscriptions/cancel"
+          success_url:"https://movie-explorer-reactjs-amandeep.vercel.app/success?session_id={CHECKOUT_SESSION_ID}",
+          cancel_url: "https://movie-explorer-reactjs-amandeep.vercel.app/cancel?session_id={CHECKOUT_SESSION_ID}",
         )
 
         render json: { session_id: session.id, url: session.url }, status: :ok
