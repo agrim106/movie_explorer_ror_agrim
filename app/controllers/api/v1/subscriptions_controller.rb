@@ -44,7 +44,7 @@ module Api
             plan_type: plan_type
           },
           success_url:"https://movie-explorer-reactjs-amandeep.vercel.app/success?session_id={CHECKOUT_SESSION_ID}",
-          cancel_url: "https://movie-explorer-reactjs-amandeep.vercel.app/cancel?session_id={CHECKOUT_SESSION_ID}",
+          cancel_url: "https://movie-explorer-reactjs-amandeep.vercel.app/cancel",
         )
 
         render json: { session_id: session.id, url: session.url }, status: :ok
