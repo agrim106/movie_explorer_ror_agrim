@@ -48,8 +48,9 @@ module Api
         result = Movie.create_movie(movie_params)
         if result[:success]
           movie = result[:movie]
+          users = User.all;
           firebase = FirebaseService.new
-          firebase.send_notification_to_users(premium_users, "New Premium Movie!", "Check out #{movie.title} now!")
+          firebase.send_notification_to_users(users, "New Premium Movie!", "Check out #{movie.title} now!")
           render json: {
             message: 'Movie added successfully',
             movie: movie.as_json(methods: :plan).merge(
