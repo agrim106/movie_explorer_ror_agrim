@@ -7,7 +7,7 @@ class User < ApplicationRecord
   validates :last_name, presence: true
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :mobile_number, presence: true, uniqueness: true, length: { is: 10 }
-  validates :device_token, uniqueness: true, allow_nil: true
+  #validates :device_token, uniqueness: true, allow_nil: true
   before_save { self.email = email.downcase }
 
   has_one :subscription, dependent: :destroy
