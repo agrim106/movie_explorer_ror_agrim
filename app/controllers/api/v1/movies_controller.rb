@@ -48,7 +48,7 @@ module Api
         result = Movie.create_movie(movie_params)
         if result[:success]
           movie = result[:movie]
-          users = User.all;
+          users = User.all
           firebase = FirebaseService.new
           firebase.send_notification_to_users(users, "New Premium Movie!", "Check out #{movie.title} now!")
           render json: {
@@ -104,10 +104,15 @@ module Api
 
         Rails.logger.info "Permitted params: #{permitted_params.inspect}"
 
+        # Filter params to exclude invalid poster/banner values
         filtered_params = permitted_params.each_with_object({}) do |(key, value), hash|
           if %w[poster banner].include?(key.to_s)
-            hash[key] = value if value.present?
+            # Only include poster/banner if they are valid files or URLs
+            if value.is_a?(ActionDispatch::Http::UploadedFile) || (value.is_a?(String) && value.start_with?('http'))
+              hash[key] = value
+            end
           else
+            # Handle other attributes, stripping strings and excluding blank values
             if value.is_a?(String)
               stripped_value = value.strip
               hash[key] = stripped_value if stripped_value != ""
@@ -119,12 +124,13 @@ module Api
 
         Rails.logger.info "Filtered params: #{filtered_params.inspect}"
 
+        # Convert premium to boolean if present
         if filtered_params.key?(:premium)
           filtered_params[:premium] = case filtered_params[:premium].to_s.downcase
-                                      when "true" then true
-                                      when "false" then false
-                                      else filtered_params[:premium]
-                                      end
+                                     when "true" then true
+                                     when "false" then false
+                                     else filtered_params[:premium]
+                                     end
         end
 
         filtered_params
