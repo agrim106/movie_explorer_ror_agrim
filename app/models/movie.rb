@@ -43,7 +43,7 @@ class Movie < ApplicationRecord
   # Custom validation for release_year
   validate :release_year_cannot_be_future
 
-  # Debug callbacks to identify if title is being reset
+  # Debug callbacks
   before_validation do
     Rails.logger.info "Before validation: title = #{title}, changes = #{changes}"
   end
@@ -122,21 +122,21 @@ class Movie < ApplicationRecord
     self.banner.attach(params[:banner]) if params[:banner].present?
 
     Rails.logger.info "Before save: title = #{title}, changes = #{changes}"
-    # Temporarily use update_columns to bypass callbacks and validations
-    update_success = if changes.any?
-                       update_columns(permitted_params.merge(updated_at: Time.current))
-                     else
-                       true # No changes to save
-                     end
-
-    Rails.logger.info "After update_columns: title = #{title}, changes = #{changes}, update_success = #{update_success}"
-
-    if update_success
-      Rails.logger.info "Update successful: title = #{title}, changes = #{changes}"
-      { success: true, movie: self }
-    else
-      Rails.logger.info "Update failed: errors = #{errors.full_messages}"
-      { success: false, errors: errors.full_messages }
+    # Use update instead of update_columns to respect validations and callbacks
+    begin
+      if save
+        Rails.logger.info "Update successful: title = #{title}, changes = #{changes}"
+        { success: true, movie: self }
+      else
+        Rails.logger.info "Update failed: errors = #{errors.full_messages}"
+        { success: false, errors: errors.full_messages }
+      end
+    rescue ActiveSupport::MessageVerifier::InvalidSignature => e
+      Rails.logger.error "InvalidSignature error during save: #{e.message}"
+      { success: false, errors: ["Failed to update movie due to an internal error: #{e.message}"] }
+    rescue StandardError => e
+      Rails.logger.error "Unexpected error during save: #{e.message}"
+      { success: false, errors: ["Unexpected error: #{e.message}"] }
     end
   end
 
