@@ -38,6 +38,17 @@ module Api
       end
 
       def show
+         # Check if movie is premium
+        if @movie.premium?
+          # Authenticate user for premium movies
+          authenticate_user!
+          
+          # Check if user has active premium subscription
+          unless current_user&.subscription&.premium? && current_user.subscription.active?
+            render json: { error: 'Premium subscription required to access this movie' }, status: :forbidden
+            return
+          end
+        end
         render json: @movie.as_json(methods: :plan).merge(
           poster_url: @movie.poster.attached? ? generate_cloudinary_url(@movie.poster.blob) : nil,
           banner_url: @movie.banner.attached? ? generate_cloudinary_url(@movie.banner.blob) : nil

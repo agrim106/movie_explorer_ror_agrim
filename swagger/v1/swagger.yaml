@@ -642,6 +642,8 @@ paths:
       operationId: retrieveMovie
       tags:
         - Movies
+      security:
+        - BearerAuth: []
       parameters:
         - name: id
           in: path
@@ -712,6 +714,24 @@ paths:
                   - plan
                   - created_at
                   - updated_at
+        "401":
+          description: Unauthorized (for premium movies when not authenticated)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "403":
+          description: Forbidden (for premium movies without premium subscription)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string                      
         "404":
           description: Movie not found
           content:
